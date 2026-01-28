@@ -1,0 +1,834 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Management - Green Bean Admin{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-green: #22a54a;
+        --dark-green: #155724;
+        --light-green: #d4edda;
+        --accent-green: #1aa179;
+        --text-dark: #1a1a1a;
+        --text-secondary: #495057;
+        --bg-light: #f8f9fa;
+        --border-color: #d1d5db;
+        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fa;
+        color: var(--text-dark);
+    }
+
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        background: linear-gradient(135deg, var(--dark-green) 0%, var(--primary-green) 100%);
+        color: white;
+        padding-top: 20px;
+        overflow-y: auto;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+
+    .sidebar-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar-logo i {
+        font-size: 1.2rem;
+    }
+
+    .sidebar-logo h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .sidebar-menu {
+        list-style: none;
+        padding: 0 10px;
+    }
+
+    .sidebar-menu li {
+        margin: 5px 0;
+    }
+
+    .sidebar-menu a {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        gap: 12px;
+        font-size: 0.95rem;
+    }
+
+    .sidebar-menu a:hover,
+    .sidebar-menu a.active {
+        background-color: rgba(255, 255, 255, 0.15);
+        color: white;
+        padding-left: 20px;
+    }
+
+    .sidebar-menu a.active {
+        background-color: var(--accent-green);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-menu i {
+        width: 20px;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+
+    .main-content {
+        margin-left: 285px;
+        padding: 20px;
+        min-height: 100vh;
+    }
+
+    .top-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 20px;
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 0 1 300px;
+        max-width: 300px;
+    }
+
+    .search-box input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        outline: none;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 3px rgba(34, 165, 74, 0.1);
+    }
+
+    .btn-add {
+        padding: 10px 10px;
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .btn-add:hover {
+        background: var(--dark-green);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(34, 165, 74, 0.3);
+    }
+
+    .page-header {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 30px;
+    }
+
+    .page-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #000000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-title i {
+        color: var(--primary-green);
+    }
+
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-mini {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+    }
+
+    .stat-mini-value {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--primary-green);
+        margin-bottom: 8px;
+    }
+
+    .stat-mini-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+        font-size: 0.93rem;
+    }
+
+    .table thead th {
+        background-color: var(--bg-light);
+        border: none;
+        color: #000000;
+        font-weight: 700;
+        padding: 12px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        padding: 12px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        font-size: 0.93rem;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--bg-light);
+    }
+
+    .customer-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, var(--primary-green), var(--accent-green));
+        margin-right: 10px;
+    }
+
+    .customer-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .member-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background-color: var(--light-green);
+        color: var(--dark-green);
+        margin-left: 10px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        padding: 10px 14px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-view {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .btn-view:hover {
+        background-color: #bbdefb;
+        color: #1565c0;
+        transform: translateY(-2px);
+    }
+
+    .btn-message {
+        background-color: #f0f4c3;
+        color: #9e8e00;
+    }
+
+    .btn-message:hover {
+        background-color: #dfe08a;
+        color: #7d6d00;
+        transform: translateY(-2px);
+    }
+
+    .modal-content {
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+        background: var(--primary-green);
+        color: white;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #000000;
+        margin-bottom: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary-green);
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        background: var(--dark-green);
+    }
+
+    .pagination {
+        margin-top: 30px;
+        gap: 5px;
+    }
+
+    .page-link {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background-color: var(--bg-light);
+        border-color: var(--primary-green);
+    }
+
+    .page-link.active {
+        background-color: var(--primary-green);
+        color: white;
+        border-color: var(--primary-green);
+    }
+
+    .pagination {
+        margin-top: 20px;
+    }
+
+    .pagination .page-link {
+        color: var(--primary-green);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        margin: 0 4px;
+    }
+
+    .pagination .page-link:hover {
+        background: var(--bg-light);
+        border-color: var(--primary-green);
+    }
+
+    .pagination .page-link.active {
+        background: var(--primary-green);
+        border-color: var(--primary-green);
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 200px;
+        }
+
+        .main-content {
+            margin-left: 200px;
+            padding: 15px;
+        }
+
+        .top-bar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stats-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .sidebar {
+            position: fixed;
+            left: -260px;
+            transition: left 0.3s ease;
+        }
+
+        .main-content {
+            margin-left: 0;
+        }
+
+        .top-bar {
+            gap: 10px;
+        }
+
+        .table {
+            font-size: 0.8rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+<div class="main-content ms-0 me-0 px-1">
+    <div class="page-header">
+        <div class="page-title">
+            <i class="fas fa-users"></i>
+            Customer Management
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-mini">
+            <div class="stat-mini-value">892</div>
+            <div class="stat-mini-label">Total Customers</div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-mini-value">156</div>
+            <div class="stat-mini-label">New This Month</div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-mini-value">$12,450</div>
+            <div class="stat-mini-label">Total Spent</div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-mini-value">78%</div>
+            <div class="stat-mini-label">Retention Rate</div>
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <div class="search-box">
+            <i class="fas fa-search" style="color: #6c757d;"></i>
+            <input type="text" placeholder="Search by name, email, or phone...">
+        </div>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+            <i class="fas fa-user-plus"></i> Add Customer
+        </button>
+    </div>
+
+    <div class="table-card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Total Orders</th>
+                    <th>Total Spent</th>
+                    <th>Member Since</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="customerTableBody">
+                <tr>
+                    <td>
+                        <div class="customer-info">
+                            <div class="customer-avatar">JD</div>
+                            <div>
+                                <strong>John Doe</strong>
+                                <span class="member-badge">Gold</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>john@example.com</td>
+                    <td>(555) 123-4567</td>
+                    <td>12</td>
+                    <td>$456.78</td>
+                    <td>Nov 2023</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal"
+                                data-bs-target="#customerDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-message">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="customer-info">
+                            <div class="customer-avatar">JS</div>
+                            <div>
+                                <strong>Jane Smith</strong>
+                                <span class="member-badge">Silver</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>jane@example.com</td>
+                    <td>(555) 234-5678</td>
+                    <td>8</td>
+                    <td>$234.56</td>
+                    <td>Jan 2024</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal"
+                                data-bs-target="#customerDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-message">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="customer-info">
+                            <div class="customer-avatar">MB</div>
+                            <div>
+                                <strong>Michael Brown</strong>
+                                <span class="member-badge">Bronze</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>michael@example.com</td>
+                    <td>(555) 345-6789</td>
+                    <td>5</td>
+                    <td>$123.45</td>
+                    <td>Mar 2024</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal"
+                                data-bs-target="#customerDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-message">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="customer-info">
+                            <div class="customer-avatar">SW</div>
+                            <div>
+                                <strong>Sarah Wilson</strong>
+                            </div>
+                        </div>
+                    </td>
+                    <td>sarah@example.com</td>
+                    <td>(555) 456-7890</td>
+                    <td>2</td>
+                    <td>$78.90</td>
+                    <td>May 2024</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal"
+                                data-bs-target="#customerDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-message">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="customer-info">
+                            <div class="customer-avatar">DL</div>
+                            <div>
+                                <strong>David Lee</strong>
+                                <span class="member-badge">Gold</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>david@example.com</td>
+                    <td>(555) 567-8901</td>
+                    <td>15</td>
+                    <td>$678.90</td>
+                    <td>Jul 2023</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal"
+                                data-bs-target="#customerDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-message">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+            <li class="page-item"><a class="page-link active" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+        </ul>
+    </nav>
+</div>
+
+<!-- Customer Detail Modal -->
+<div class="modal fade" id="customerDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Customer Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="form-label">Personal Information</h6>
+                        <p>
+                            <strong>Name:</strong> John Doe<br>
+                            <strong>Email:</strong> john@example.com<br>
+                            <strong>Phone:</strong> (555) 123-4567<br>
+                            <strong>Member Since:</strong> November 2023
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="form-label">Purchase Statistics</h6>
+                        <p>
+                            <strong>Total Orders:</strong> 12<br>
+                            <strong>Total Spent:</strong> $456.78<br>
+                            <strong>Average Order:</strong> $38.07<br>
+                            <strong>Member Status:</strong> <span class="member-badge">Gold</span>
+                        </p>
+                    </div>
+                </div>
+                <h6 class="form-label">Shipping Address</h6>
+                <p>
+                    123 Main Street<br>
+                    Anytown, State 12345<br>
+                    United States
+                </p>
+                <h6 class="form-label">Recent Orders</h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#12345</td>
+                            <td>Nov 27, 2025</td>
+                            <td>$45.99</td>
+                            <td><span
+                                    style="background-color: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Delivered</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#12340</td>
+                            <td>Nov 15, 2025</td>
+                            <td>$65.50</td>
+                            <td><span
+                                    style="background-color: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Delivered</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#12335</td>
+                            <td>Oct 20, 2025</td>
+                            <td>$89.99</td>
+                            <td><span
+                                    style="background-color: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Delivered</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCustomerLabel">
+                    <i class="fas fa-user-plus"></i> Add New Customer
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCustomerForm">
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="customerName" placeholder="e.g., John Doe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerEmail" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="customerEmail" placeholder="e.g., john@example.com"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerPhone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="customerPhone" placeholder="e.g., (555) 123-4567"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerCity" class="form-label">City</label>
+                        <input type="text" class="form-control" id="customerCity" placeholder="e.g., New York" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerMembership" class="form-label">Membership Level</label>
+                        <select class="form-select" id="customerMembership" required>
+                            <option value="">Select membership level</option>
+                            <option value="Bronze">Bronze</option>
+                            <option value="Silver">Silver</option>
+                            <option value="Gold">Gold</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.querySelector('.search-input');
+        const table = document.querySelector('.table');
+        const tbody = table ? table.querySelector('tbody') : null;
+
+        function filterTable() {
+            if (!tbody) return;
+
+            const searchTerm = searchInput.value.toLowerCase();
+            const rows = tbody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const name = cells[0] ? cells[0].textContent.toLowerCase() : '';
+                const email = cells[1] ? cells[1].textContent.toLowerCase() : '';
+                const phone = cells[2] ? cells[2].textContent.toLowerCase() : '';
+
+                if (name.includes(searchTerm) || email.includes(searchTerm) || phone.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('keyup', filterTable);
+        }
+    });
+
+    function viewCustomer(btn) {
+        const row = btn.closest('tr');
+        const customerName = row.querySelector('.customer-name').textContent;
+        console.log('View customer:', customerName);
+    }
+
+    function sendEmail(btn) {
+        const row = btn.closest('tr');
+        const customerEmail = row.querySelector('.customer-email').textContent;
+        console.log('Send email to:', customerEmail);
+    }
+
+    // Pagination functionality
+    document.querySelectorAll('.pagination-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (this.classList.contains('page-btn')) {
+                document.querySelectorAll('.pagination-btn.active').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            }
+        });
+    });
+</script>
+{% endblock %}

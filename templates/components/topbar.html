@@ -1,0 +1,99 @@
+<!-- TOP BAR COMPONENT -->
+<div class="top-bar">
+    <div class="page-header-topbar">
+        <h2 class="module-title">
+            {% if module_icon %}
+                <i class="fas {{ module_icon }}"></i>
+            {% endif %}
+            {{ module_name or 'Dashboard' }}
+        </h2>
+    </div>
+    <div class="top-actions">
+        <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge">5</span>
+        </div>
+        <div class="admin-profile-container">
+            {% if session.get('username') %}
+                <div class="admin-profile" title="{{ session.get('username') }}">
+                    <div class="admin-avatar">
+                        {% if session.get('profile_pic') and session.get('profile_pic') != 'default.png' %}
+                            <img src="/static/upload/{{ session.get('profile_pic') }}" alt="User Avatar">
+                        {% else %}
+                            {{ session.get('username')[0:2].upper() }}
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="admin-profile">
+                    <div class="admin-avatar">AB</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-header-topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+    }
+
+    .module-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #000000;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .module-title i {
+        color: var(--primary-green);
+        font-size: 1.8rem;
+    }
+
+    .admin-profile-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .admin-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+    }
+
+    .admin-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #22a54a, #1aa179);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        overflow: hidden;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .admin-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .admin-profile:hover .admin-avatar {
+        border-color: #22a54a;
+        box-shadow: 0 0 8px rgba(34, 165, 74, 0.3);
+    }
+</style>

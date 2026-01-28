@@ -1,0 +1,871 @@
+{% extends "base.html" %}
+
+{% block title %}Order Management - Green Bean Admin{% endblock %}
+
+{% block content %}
+<div class="main-content ms-0 me-0 px-1">
+    <div class="page-header">
+        <div class="page-title">
+            <i class="fas fa-shopping-cart"></i>
+            Order Management
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <div class="search-box">
+            <i class="fas fa-search" style="color: #6c757d;"></i>
+            <input type="text" placeholder="Search by Order ID or Customer...">
+        </div>
+        <div class="filter-group">
+            <select id="statusFilter">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+            <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addOrderModal">
+                <i class="fas fa-plus"></i> New Order
+            </button>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Total Amount</th>
+                    <th>Items</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="orderTableBody">
+                <tr>
+                    <td><strong>#12345</strong></td>
+                    <td>John Doe</td>
+                    <td>john@example.com</td>
+                    <td><strong>$45.99</strong></td>
+                    <td>2 items</td>
+                    <td><span class="status-badge status-delivered">Delivered</span></td>
+                    <td>Nov 27, 2025</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal" data-bs-target="#orderDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-edit" data-bs-toggle="modal" data-bs-target="#editStatusModal">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#12344</strong></td>
+                    <td>Jane Smith</td>
+                    <td>jane@example.com</td>
+                    <td><strong>$29.99</strong></td>
+                    <td>1 item</td>
+                    <td><span class="status-badge status-shipped">Shipped</span></td>
+                    <td>Nov 26, 2025</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal" data-bs-target="#orderDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-edit" data-bs-toggle="modal" data-bs-target="#editStatusModal">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#12343</strong></td>
+                    <td>Michael Brown</td>
+                    <td>michael@example.com</td>
+                    <td><strong>$35.99</strong></td>
+                    <td>3 items</td>
+                    <td><span class="status-badge status-processing">Processing</span></td>
+                    <td>Nov 25, 2025</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal" data-bs-target="#orderDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-edit" data-bs-toggle="modal" data-bs-target="#editStatusModal">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#12342</strong></td>
+                    <td>Sarah Wilson</td>
+                    <td>sarah@example.com</td>
+                    <td><strong>$25.99</strong></td>
+                    <td>1 item</td>
+                    <td><span class="status-badge status-pending">Pending</span></td>
+                    <td>Nov 24, 2025</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal" data-bs-target="#orderDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-edit" data-bs-toggle="modal" data-bs-target="#editStatusModal">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#12341</strong></td>
+                    <td>David Lee</td>
+                    <td>david@example.com</td>
+                    <td><strong>$55.99</strong></td>
+                    <td>4 items</td>
+                    <td><span class="status-badge status-cancelled">Cancelled</span></td>
+                    <td>Nov 23, 2025</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" data-bs-toggle="modal" data-bs-target="#orderDetailModal">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon btn-edit" data-bs-toggle="modal" data-bs-target="#editStatusModal">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+            <li class="page-item"><a class="page-link active" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+        </ul>
+    </nav>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order Details - #12345</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="form-label">Customer Information</h6>
+                        <p class="order-details">
+                            <strong>Name:</strong> John Doe<br>
+                            <strong>Email:</strong> john@example.com<br>
+                            <strong>Phone:</strong> (555) 123-4567<br>
+                            <strong>Address:</strong> 123 Main St, City, State 12345
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="form-label">Order Information</h6>
+                        <p class="order-details">
+                            <strong>Order ID:</strong> #12345<br>
+                            <strong>Order Date:</strong> Nov 27, 2025<br>
+                            <strong>Status:</strong> <span class="status-badge status-delivered">Delivered</span><br>
+                            <strong>Payment:</strong> Credit Card
+                        </p>
+                    </div>
+                </div>
+                <h6 class="form-label">Order Items</h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Snake Plant</td>
+                            <td>1</td>
+                            <td>$24.99</td>
+                            <td>$24.99</td>
+                        </tr>
+                        <tr>
+                            <td>Ceramic Pot (10")</td>
+                            <td>1</td>
+                            <td>$14.99</td>
+                            <td>$14.99</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                            <td><strong>$39.98</strong></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Shipping:</strong></td>
+                            <td><strong>$6.01</strong></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                            <td><strong>$45.99</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Status Modal -->
+<div class="modal fade" id="editStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Order Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Order ID</label>
+                    <input type="text" class="form-control" value="#12345" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Current Status</label>
+                    <input type="text" class="form-control" value="Pending" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">New Status</label>
+                    <select class="form-select">
+                        <option selected>Pending</option>
+                        <option>Processing</option>
+                        <option>Shipped</option>
+                        <option>Delivered</option>
+                        <option>Cancelled</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea class="form-control" rows="3" placeholder="Add any notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Order Modal -->
+<div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOrderLabel">
+                    <i class="fas fa-plus"></i> Create New Order
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newOrderForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="orderCustomer" class="form-label">Customer Name</label>
+                            <input type="text" class="form-control" id="orderCustomer" placeholder="e.g., John Doe"
+                                required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="orderEmail" class="form-label">Customer Email</label>
+                            <input type="email" class="form-control" id="orderEmail"
+                                placeholder="e.g., john@example.com" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="orderItems" class="form-label">Number of Items</label>
+                            <input type="number" class="form-control" id="orderItems" min="1" placeholder="e.g., 2"
+                                required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="orderAmount" class="form-label">Total Amount ($)</label>
+                            <input type="number" class="form-control" id="orderAmount" min="0" step="0.01"
+                                placeholder="e.g., 45.99" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="orderAddress" class="form-label">Shipping Address</label>
+                        <input type="text" class="form-control" id="orderAddress"
+                            placeholder="e.g., 123 Main St, New York, NY" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="orderStatus" class="form-label">Order Status</label>
+                        <select class="form-select" id="orderStatus" required>
+                            <option value="">Select status</option>
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="orderNotes" class="form-label">Order Notes (Optional)</label>
+                        <textarea class="form-control" id="orderNotes" rows="2"
+                            placeholder="Add any special instructions..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveOrder()">Create Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-green: #22a54a;
+        --dark-green: #155724;
+        --light-green: #d4edda;
+        --accent-green: #1aa179;
+        --text-dark: #1a1a1a;
+        --text-secondary: #495057;
+        --bg-light: #f8f9fa;
+        --border-color: #d1d5db;
+        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fa;
+        color: var(--text-dark);
+    }
+
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        background: linear-gradient(135deg, var(--dark-green) 0%, var(--primary-green) 100%);
+        color: white;
+        padding-top: 20px;
+        overflow-y: auto;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+
+    .sidebar-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar-logo i {
+        font-size: 1.2rem;
+    }
+
+    .sidebar-logo h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .sidebar-menu {
+        list-style: none;
+        padding: 0 10px;
+    }
+
+    .sidebar-menu li {
+        margin: 5px 0;
+    }
+
+    .sidebar-menu a {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        gap: 12px;
+        font-size: 0.95rem;
+    }
+
+    .sidebar-menu a:hover,
+    .sidebar-menu a.active {
+        background-color: rgba(255, 255, 255, 0.15);
+        color: white;
+        padding-left: 20px;
+    }
+
+    .sidebar-menu a.active {
+        background-color: var(--accent-green);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-menu i {
+        width: 20px;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+
+    .main-content {
+        margin-left: 285px;
+        padding: 20px;
+        min-height: 100vh;
+    }
+
+    .top-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 20px;
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 0 1 300px;
+        max-width: 300px;
+    }
+
+    .search-box input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        outline: none;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 3px rgba(34, 165, 74, 0.1);
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .filter-group select {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        outline: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .filter-group select:focus {
+        border-color: var(--primary-green);
+    }
+
+    .btn-add {
+        padding: 10px 10px;
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .btn-add:hover {
+        background: var(--dark-green);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(34, 165, 74, 0.3);
+    }
+
+    .page-header {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 30px;
+    }
+
+    .page-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #000000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-title i {
+        color: var(--primary-green);
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+        font-size: 0.98rem;
+    }
+
+    .table thead th {
+        background-color: var(--bg-light);
+        border: none;
+        color: #000000;
+        font-weight: 700;
+        padding: 12px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        padding: 12px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        font-size: 0.98rem;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--bg-light);
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-processing {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-shipped {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+
+    .status-delivered {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        padding: 10px 14px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-view {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .btn-view:hover {
+        background-color: #bbdefb;
+        color: #1565c0;
+        transform: translateY(-2px);
+    }
+
+    .btn-edit {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .btn-edit:hover {
+        background-color: #ffeaa7;
+        color: #665d00;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
+    .btn-delete:hover {
+        background-color: #ffcdd2;
+        color: #b71c1c;
+        transform: translateY(-2px);
+    }
+
+    .modal-content {
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+        background: var(--primary-green);
+        color: white;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #000000;
+        margin-bottom: 8px;
+    }
+
+    .form-control,
+    .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 0.2rem rgba(34, 165, 74, 0.25);
+    }
+
+    .btn-primary {
+        background: var(--primary-green);
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        background: var(--dark-green);
+    }
+
+    .pagination {
+        margin-top: 30px;
+        gap: 5px;
+    }
+
+    .page-link {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background-color: var(--bg-light);
+        border-color: var(--primary-green);
+    }
+
+    .page-link.active {
+        background-color: var(--primary-green);
+        color: white;
+        border-color: var(--primary-green);
+    }
+
+    .pagination {
+        margin-top: 20px;
+    }
+
+    .pagination .page-link {
+        color: var(--primary-green);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        margin: 0 4px;
+    }
+
+    .pagination .page-link:hover {
+        background: var(--bg-light);
+        border-color: var(--primary-green);
+    }
+
+    .pagination .page-link.active {
+        background: var(--primary-green);
+        border-color: var(--primary-green);
+        color: white;
+    }
+
+    .order-details {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 200px;
+        }
+
+        .main-content {
+            margin-left: 200px;
+            padding: 15px;
+        }
+
+        .top-bar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .filter-group {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .filter-group select {
+            width: 100%;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .sidebar {
+            position: fixed;
+            left: -260px;
+            transition: left 0.3s ease;
+        }
+
+        .main-content {
+            margin-left: 0;
+        }
+
+        .top-bar {
+            gap: 10px;
+        }
+
+        .table {
+            font-size: 0.8rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.querySelector('.search-input');
+        const table = document.querySelector('.table');
+        const tbody = table ? table.querySelector('tbody') : null;
+
+        function filterTable() {
+            if (!tbody) return;
+
+            const searchTerm = searchInput.value.toLowerCase();
+            const rows = tbody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const orderId = cells[0] ? cells[0].textContent.toLowerCase() : '';
+                const customer = cells[1] ? cells[1].textContent.toLowerCase() : '';
+
+                if (orderId.includes(searchTerm) || customer.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('keyup', filterTable);
+        }
+    });
+
+    function viewOrder(btn) {
+        const row = btn.closest('tr');
+        const orderId = row.querySelector('td:nth-child(1)').textContent;
+        console.log('View order:', orderId);
+    }
+
+    function editOrder(btn) {
+        const row = btn.closest('tr');
+        const orderId = row.querySelector('td:nth-child(1)').textContent;
+        console.log('Edit order:', orderId);
+    }
+
+    // Pagination functionality
+    document.querySelectorAll('.pagination-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (this.classList.contains('page-btn')) {
+                document.querySelectorAll('.pagination-btn.active').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+from flask import Flask, redirect, url_for, session
+from flask_migrate import Migrate
+import os
+import config
+from functools import wraps
+from database import db
+
+app = Flask(__name__, template_folder='templates', static_folder='static')
+app.config.from_object(config)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = 'your_secret_key_change_this_in_production'
+
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Initialize db with app
+db.init_app(app)
+migrate = Migrate(app, db)
+
+from model import init_models
+Product, Category = init_models(db)
+
+# Import User after db is initialized
+from model.user import User
+
+from routes.admin.auth import auth_bp
+from routes.admin.dashboard import dashboard_bp
+from routes.admin.product import product_bp
+from routes.admin.order import admin_bp as order_bp
+from routes.admin.customer import admin_bp as customer_bp
+from routes.admin.category import category_bp
+from routes.admin.discount import admin_bp as discount_bp
+from routes.admin.analytics import admin_bp as analytics_bp
+from routes.admin.setting import admin_bp as settings_bp
+from routes.admin.user import user_bp
+
+app.register_blueprint(auth_bp)
+app.register_blueprint(dashboard_bp)
+app.register_blueprint(product_bp)
+app.register_blueprint(order_bp)
+app.register_blueprint(customer_bp)
+app.register_blueprint(category_bp)
+app.register_blueprint(discount_bp)
+app.register_blueprint(analytics_bp)
+app.register_blueprint(settings_bp)
+app.register_blueprint(user_bp)
+
+# Login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Main routes
+@app.route('/')
+def index():
+    if 'user_id' in session:
+        return redirect(url_for('admin.dashboard_route'))
+    return redirect(url_for('auth.login'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('auth.login'))
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)

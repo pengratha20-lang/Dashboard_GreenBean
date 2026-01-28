@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Discounts Management - Green Bean Admin{% endblock %}
+
+{% block content %}
+<!-- Updated layout for Discounts page -->
+<div class="page-header">
+    <div class="page-title">
+        <i class="fas fa-tags"></i>
+        Discount Management
+    </div>
+    <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addDiscountModal">
+        <i class="fas fa-plus"></i> Add Discount
+    </button>
+</div>
+
+<!-- Discounts Table -->
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Coupon Code</th>
+                <th>Type</th>
+                <th>Value</th>
+                <th>Min. Purchase</th>
+                <th>Usage Count</th>
+                <th>Valid Until</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="discountTableBody">
+            {% for discount in discounts %}
+            <tr>
+                <td><strong>{{ discount.code }}</strong></td>
+                <td><span class="badge-discount badge-percentage">{{ discount.discount }}</span></td>
+                <td>{{ discount.discount }}</td>
+                <td>{{ discount.min_purchase or 'N/A' }}</td>
+                <td>{{ discount.usage_count or '0' }}</td>
+                <td>{{ discount.expiry }}</td>
+                <td><span class="badge-discount status-{{ 'active' if discount.status == 'active' else 'inactive' }}">{{ discount.status|title }}</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-icon btn-edit" data-bs-toggle="modal" data-bs-target="#editDiscountModal">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="deleteDiscount(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .table-responsive {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+        font-size: 0.93rem;
+    }
+
+    .table thead th {
+        background-color: var(--bg-light);
+        border: none;
+        color: #000000;
+        font-weight: 700;
+        padding: 12px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        padding: 12px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        font-size: 0.93rem;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--bg-light);
+    }
+
+    .badge-discount {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-percentage {
+        background-color: #ffeaa7;
+        color: #d63031;
+    }
+
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 4px;
+    }
+
+    .btn-icon {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .btn-edit {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .btn-edit:hover {
+        background-color: #bbdefb;
+    }
+
+    .btn-delete {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
+    .btn-delete:hover {
+        background-color: #ffcdd2;
+    }
+
+    .btn-add {
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        padding: 10px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+    }
+
+    .btn-add:hover {
+        background: var(--dark-green);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(34, 165, 74, 0.3);
+    }
+</style>
+{% endblock %}

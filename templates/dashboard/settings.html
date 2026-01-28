@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Green Bean Admin{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-left: 0px;">
+    <div class="page-title">
+        <i class="fas fa-cog"></i>
+        Settings
+    </div>
+</div>
+
+<div class="settings-container">
+    <div class="settings-menu">
+        <a href="#general" class="settings-tab active" onclick="showPanel('general')">
+            <i class="fas fa-store"></i> General
+        </a>
+        <a href="#shipping" class="settings-tab" onclick="showPanel('shipping')">
+            <i class="fas fa-shipping-fast"></i> Shipping
+        </a>
+        <a href="#payment" class="settings-tab" onclick="showPanel('payment')">
+            <i class="fas fa-credit-card"></i> Payment
+        </a>
+        <a href="#email" class="settings-tab" onclick="showPanel('email')">
+            <i class="fas fa-envelope"></i> Email
+        </a>
+        <a href="#security" class="settings-tab" onclick="showPanel('security')">
+            <i class="fas fa-shield-alt"></i> Security
+        </a>
+    </div>
+
+    <div class="settings-panel">
+        <!-- General Settings -->
+        <div class="panel-content" id="general-panel">
+            <div class="panel-title">
+                <i class="fas fa-store"></i>
+                General Settings
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Store Name</label>
+                <input type="text" class="form-control" value="{{ settings.store_name or 'Green Bean Admin' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Store Email</label>
+                <input type="email" class="form-control" value="{{ settings.email or 'admin@greenbean.com' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" value="{{ settings.phone or '+1 (555) 123-4567' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Store Address</label>
+                <textarea class="form-control" rows="3">{{ settings.address or '123 Plant Street, Garden City, ST 12345' }}</textarea>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button class="btn-save" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-container {
+        display: flex;
+        gap: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .settings-menu {
+        width: 250px;
+        background: var(--bg-light);
+        padding: 20px 0;
+    }
+
+    .settings-tab {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        gap: 12px;
+        border: none;
+        background: none;
+        width: 100%;
+        cursor: pointer;
+    }
+
+    .settings-tab:hover {
+        background: rgba(34, 165, 74, 0.1);
+        color: var(--primary-green);
+    }
+
+    .settings-tab.active {
+        background: var(--primary-green);
+        color: white;
+        font-weight: 600;
+    }
+
+    .settings-panel {
+        flex: 1;
+        padding: 30px;
+    }
+
+    .panel-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #000000;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #000000;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 0.2rem rgba(34, 165, 74, 0.25);
+        outline: none;
+    }
+
+    .btn-save {
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-right: 10px;
+    }
+
+    .btn-save:hover {
+        background: var(--dark-green);
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #5a6268;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showPanel(panelName) {
+        // Remove active class from all tabs
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Add active class to clicked tab
+        document.querySelector(`[onclick="showPanel('${panelName}')"]`).classList.add('active');
+        
+        // Show corresponding panel (if multiple panels exist)
+        // For now, we only have one panel
+    }
+
+    function saveSettings() {
+        alert('Settings saved successfully!');
+    }
+</script>
+{% endblock %}
