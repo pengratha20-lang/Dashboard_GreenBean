@@ -301,9 +301,9 @@
         <!-- Form Actions -->
         <div class="form-actions">
             <a href="{{ url_for('product_module.products_route') }}" class="btn btn-secondary">Cancel</a>
-            <button type="button" class="action-btn delete-btn delete-product" title="Delete Product"
+            <button type="button" class="btn btn-danger delete-product" title="Delete Product"
                 data-product-id="{{ product.id }}">
-                <i class="fas fa-trash"></i>
+                <i class="fas fa-trash"></i> Delete Product
             </button>
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save"></i> Save Changes

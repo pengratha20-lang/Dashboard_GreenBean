@@ -78,7 +78,7 @@ def getCategoriesWithProductCount():
     sql = text("""
         SELECT c.id, c.category_name,c.icon, COUNT(p.category_id) AS total_products
         FROM category c
-        LEFT JOIN product p ON c.id
+        LEFT JOIN product p ON c.id = p.category_id
         GROUP BY c.id, c.category_name
         ORDER BY c.id
     """)
