@@ -3,7 +3,7 @@ from sqlalchemy import text
 from functools import wraps
 from werkzeug.security import generate_password_hash
 import os
-from upload_service import save_image
+from upload_service_enhanced import save_image_organized
 import config
 from auth_helper import login_required
 
@@ -38,21 +38,32 @@ def add_user():
     
     if request.method == 'POST':
         username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
         profile_pic_file = request.files.get('profile_pic')
         
-        if not all([username, password]):
-            return redirect(url_for('user_module.add_user', message='Username and password are required', type='error'))
+        if not all([username, email, password]):
+            return redirect(url_for('user_module.add_user', message='Username, email and password are required', type='error'))
+        
+        # Validate email format
+        if '@' not in email or '.' not in email:
+            return redirect(url_for('user_module.add_user', message='Please enter a valid email address', type='error'))
         
         # Check if username already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             return redirect(url_for('user_module.add_user', message='Username already exists', type='error'))
         
+        # Check if email already exists
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            return redirect(url_for('user_module.add_user', message='Email already registered', type='error'))
+        
         profile_pic_filename = handle_image_upload(profile_pic_file, app)
 
         new_user = User(
             username=username,
+            email=email,
             password=generate_password_hash(password),
             profile_pic=profile_pic_filename or 'default.png'
         )
@@ -62,7 +73,7 @@ def add_user():
             return redirect(url_for('user_module.users_route', message='User created successfully!', type='success'))
         except Exception as e:
             db.session.rollback()
-            return redirect(url_for('user_module.add_user', message='Error adding user', type='error'))
+            return redirect(url_for('user_module.add_user', message='Error adding user: ' + str(e), type='error'))
     
     return render_template('dashboard/users_action/add_user.html', module_name='Add User', module_icon='fa-user-plus')
 
@@ -78,17 +89,28 @@ def edit_user(user_id):
     
     if request.method == 'POST':
         username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
         
-        if not username:
-            return redirect(url_for('user_module.edit_user', user_id=user_id, message='Username is required', type='error'))
+        if not username or not email:
+            return redirect(url_for('user_module.edit_user', user_id=user_id, message='Username and email are required', type='error'))
+        
+        # Validate email format
+        if '@' not in email or '.' not in email:
+            return redirect(url_for('user_module.edit_user', user_id=user_id, message='Please enter a valid email address', type='error'))
         
         # Check if username is already taken by another user
         existing_user = User.query.filter_by(username=username).first()
         if existing_user and existing_user.id != user_id:
             return redirect(url_for('user_module.edit_user', user_id=user_id, message='Username already exists', type='error'))
         
+        # Check if email is already taken by another user
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email and existing_email.id != user_id:
+            return redirect(url_for('user_module.edit_user', user_id=user_id, message='Email already registered', type='error'))
+        
         user.username = username
+        user.email = email
         if password:
             user.password = generate_password_hash(password)
         
@@ -104,7 +126,7 @@ def edit_user(user_id):
             return redirect(url_for('user_module.users_route', message='User updated successfully!', type='success'))
         except Exception as e:
             db.session.rollback()
-            return redirect(url_for('user_module.edit_user', user_id=user_id, message='Error updating user', type='error'))
+            return redirect(url_for('user_module.edit_user', user_id=user_id, message='Error updating user: ' + str(e), type='error'))
     
     return render_template('dashboard/users_action/edit_user.html', user=user, module_name='Edit User', module_icon='fa-edit')
 
@@ -130,7 +152,7 @@ def delete_user(user_id):
 
 def getAllUsersList():
     from app import db
-    sql = text("""SELECT id, username, profile_pic, created_at FROM user;""")
+    sql = text("""SELECT id, username, email, profile_pic, created_at FROM user;""")
     result = db.session.execute(sql).fetchall()
     return [dict(row._mapping) for row in result]
 
@@ -139,26 +161,34 @@ def handle_image_upload(image_file, app):
     if not image_file or not image_file.filename or not allowed_file(image_file.filename):
         return None
     
-    if not os.path.exists(UPLOAD_FOLDER):
-        os.makedirs(UPLOAD_FOLDER)
-    
     try:
-        images = save_image(image_file, app.config['UPLOAD_FOLDER'], app.config['ALLOWED_EXTENSIONS'])
-        return images['original'] if isinstance(images, dict) else None
+        filename = save_image_organized(image_file, 'user')
+        return filename
     except Exception as e:
         print(f"Image upload error: {e}")
         return None
 
 def delete_image_files(image_filename):
-    """Delete all image variants (original, resized, thumbnail)"""
+    """Delete all image variants from new organized structure"""
     if not image_filename or image_filename == 'default.png':
         return
     
+    from image_helper import ImagePathHelper
     name, ext = os.path.splitext(image_filename)
-    for filename in [image_filename, f"resized_{name}{ext}", f"thumb_{name}{ext}"]:
-        try:
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            if os.path.exists(file_path):
-                os.remove(file_path)
-        except Exception as e:
-            print(f"Error deleting file {filename}: {e}")
+    
+    # Delete from new organized structure
+    for version in ['original', 'resized', 'thumbnail']:
+        if version == 'resized':
+            filename = f"resized_{name}{ext}"
+        elif version == 'thumbnail':
+            filename = f"thumb_{name}{ext}"
+        else:
+            filename = image_filename
+        
+        path = ImagePathHelper.get_file_path('user', filename, version)
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+                print(f"Deleted: {path}")
+            except Exception as e:
+                print(f"Could not delete {filename}: {e}")

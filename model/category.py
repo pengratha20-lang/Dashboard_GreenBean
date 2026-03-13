@@ -6,6 +6,7 @@ def init_category_model(db):
     
     class Category(db.Model):
         __tablename__ = 'category'
+        __table_args__ = {'extend_existing': True}
         
         id = db.Column(db.Integer, primary_key=True)
         category_name = db.Column(db.String(80), unique=True, nullable=False)

@@ -18,7 +18,7 @@
                 <div class="admin-profile" title="{{ session.get('username') }}">
                     <div class="admin-avatar">
                         {% if session.get('profile_pic') and session.get('profile_pic') != 'default.png' %}
-                            <img src="/static/upload/{{ session.get('profile_pic') }}" alt="User Avatar">
+                            <img src="/static/images/user/thumbnails/thumb_{{ session.get('profile_pic') }}" alt="User Avatar">
                         {% else %}
                             {{ session.get('username')[0:2].upper() }}
                         {% endif %}

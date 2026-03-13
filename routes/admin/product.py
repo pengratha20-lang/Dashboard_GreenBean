@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, Blueprint
 from sqlalchemy import text
 from functools import wraps
 import os
-from upload_service import save_image
+from upload_service_enhanced import save_image_organized
 import config
 from auth_helper import login_required
 
@@ -137,26 +137,34 @@ def handle_image_upload(image_file, app):
     if not image_file or not image_file.filename or not allowed_file(image_file.filename):
         return None
     
-    if not os.path.exists(UPLOAD_FOLDER):
-        os.makedirs(UPLOAD_FOLDER)
-    
     try:
-        images = save_image(image_file, app.config['UPLOAD_FOLDER'], app.config['ALLOWED_EXTENSIONS'])
-        return images['original'] if isinstance(images, dict) else None
+        filename = save_image_organized(image_file, 'product')
+        return filename
     except Exception as e:
         print(f"Image upload error: {e}")
         return None
 
 def delete_image_files(image_filename):
-    """Delete all image variants (original, resized, thumbnail)"""
-    if not image_filename:
+    """Delete all image variants from new organized structure"""
+    if not image_filename or image_filename == 'default.png':
         return
     
+    from image_helper import ImagePathHelper
     name, ext = os.path.splitext(image_filename)
-    for filename in [image_filename, f"resized_{name}{ext}", f"thumb_{name}{ext}"]:
-        path = os.path.join(UPLOAD_FOLDER, filename)
+    
+    # Delete from new organized structure
+    for version in ['original', 'resized', 'thumbnail']:
+        if version == 'resized':
+            filename = f"resized_{name}{ext}"
+        elif version == 'thumbnail':
+            filename = f"thumb_{name}{ext}"
+        else:
+            filename = image_filename
+        
+        path = ImagePathHelper.get_file_path('product', filename, version)
         if os.path.exists(path):
             try:
                 os.remove(path)
+                print(f"Deleted: {path}")
             except Exception as e:
                 print(f"Could not delete {filename}: {e}")

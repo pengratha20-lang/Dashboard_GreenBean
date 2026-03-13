@@ -27,8 +27,12 @@ migrate = Migrate(app, db)
 from model import init_models
 Product, Category = init_models(db)
 
-# Import User after db is initialized
+# Import models after db is initialized
 from model.user import User
+from model.customer import Customer
+from model.discount import Discount, DiscountProduct
+from model.order import Order, OrderItem
+from model.setting import Setting
 
 from routes.admin.auth import auth_bp
 from routes.admin.dashboard import dashboard_bp
@@ -40,6 +44,7 @@ from routes.admin.discount import admin_bp as discount_bp
 from routes.admin.analytics import admin_bp as analytics_bp
 from routes.admin.setting import admin_bp as settings_bp
 from routes.admin.user import user_bp
+from routes.api.product_api import api_product_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(dashboard_bp)
@@ -51,6 +56,7 @@ app.register_blueprint(discount_bp)
 app.register_blueprint(analytics_bp)
 app.register_blueprint(settings_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(api_product_bp)
 
 # Login required decorator
 def login_required(f):
@@ -76,4 +82,4 @@ def logout():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

@@ -6,6 +6,7 @@ def init_product_model(db):
 
     class Product(db.Model):
         __tablename__ = 'product'
+        __table_args__ = {'extend_existing': True}
         
         id = db.Column(db.Integer, primary_key=True)
         product_name = db.Column(db.String(80), unique=True, nullable=False)

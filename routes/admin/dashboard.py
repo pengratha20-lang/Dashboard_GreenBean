@@ -1,9 +1,61 @@
 from flask import render_template, jsonify, request, Blueprint
 from auth_helper import login_required
+from database import db
+from model.order import Order
+from model.customer import Customer
+from model.user import User
+from datetime import datetime, timedelta
+from sqlalchemy import func
 import random
 
 # Create Blueprint
 dashboard_bp = Blueprint('admin', __name__, url_prefix='')
+
+# ============ REAL DATA FUNCTIONS ============
+def get_real_stats():
+    """Get real statistics from database"""
+    try:
+        total_orders = Order.query.count()
+        total_revenue = db.session.query(func.sum(Order.total_amount)).filter(
+            Order.status == 'completed'
+        ).scalar() or 0
+        total_customers = Customer.query.count()
+        total_users = User.query.count()
+        
+        # Get product count from database
+        from sqlalchemy import text
+        product_count = db.session.execute(text('SELECT COUNT(*) FROM product')).scalar() or 0
+        
+        return {
+            'total_orders': str(total_orders),
+            'total_revenue': f'${total_revenue:,.2f}',
+            'active_customers': str(total_customers),
+            'products_in_stock': str(product_count)
+        }
+    except Exception as e:
+        return {
+            'total_orders': '0',
+            'total_revenue': '$0',
+            'active_customers': '0',
+            'products_in_stock': '0'
+        }
+
+def get_real_recent_orders(limit=5):
+    """Get recent orders from database"""
+    try:
+        orders = Order.query.order_by(Order.created_at.desc()).limit(limit).all()
+        result = []
+        for order in orders:
+            result.append({
+                'id': order.order_number,
+                'customer': order.customer.name if order.customer else 'Unknown',
+                'amount': f'${order.total_amount:.2f}',
+                'status': order.status.capitalize(),
+                'date': order.created_at.strftime('%b %d, %Y') if order.created_at else 'N/A'
+            })
+        return result
+    except Exception as e:
+        return []
 
 # ============ SAMPLE DATA GENERATION ============
 def generate_chart_data(period='week'):
@@ -72,19 +124,8 @@ def get_analytics_stats(period='week'):
 @dashboard_bp.route('/dashboard')
 @login_required
 def dashboard_route():
-    stats = {
-        'total_orders': '1,234',
-        'total_revenue': '$45,320',
-        'active_customers': '892',
-        'products_in_stock': '156'
-    }
-    
-    recent_orders = [
-        {'id': '#12345', 'customer': 'John Doe', 'amount': '$45.99', 'status': 'completed', 'date': 'Dec 10, 2025'},
-        {'id': '#12344', 'customer': 'Jane Smith', 'amount': '$120.50', 'status': 'pending', 'date': 'Dec 10, 2025'},
-        {'id': '#12343', 'customer': 'Bob Johnson', 'amount': '$89.99', 'status': 'processing', 'date': 'Dec 9, 2025'},
-    ]
-    
+    stats = get_real_stats()
+    recent_orders = get_real_recent_orders(5)
     chart_data = generate_chart_data('week')
     
     return render_template('dashboard/dashboard.html', stats=stats, recent_orders=recent_orders, chart_data=chart_data, module_name='Dashboard', module_icon='fa-home')
@@ -92,6 +133,7 @@ def dashboard_route():
 
 # ============ API ROUTES FOR DYNAMIC DATA ============
 @dashboard_bp.route('/api/analytics')
+@login_required
 def get_analytics_api():
     """API endpoint for dynamic analytics data"""
     period = request.args.get('period', 'week')
@@ -101,5 +143,17 @@ def get_analytics_api():
         'stats': stats,
         'chart_data': chart_data,
         'period': period
+    })
+
+
+@dashboard_bp.route('/api/dashboard-stats')
+@login_required
+def get_dashboard_stats_api():
+    """API endpoint for dashboard stats"""
+    stats = get_real_stats()
+    recent_orders = get_real_recent_orders(5)
+    return jsonify({
+        'stats': stats,
+        'recent_orders': recent_orders
     })
 

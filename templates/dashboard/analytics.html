@@ -174,6 +174,13 @@
             <i class="fas fa-arrow-up"></i> {{ analytics.stats.conversion_change if analytics and analytics.stats else '0.5' }}% increase from last week
         </div>
     </div>
+    <div class="stat-card">
+        <div class="stat-number green">{{ analytics.stats.customers if analytics and analytics.stats else '0' }}</div>
+        <div class="stat-label">Total Customers</div>
+        <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i> {{ analytics.stats.customers_change if analytics and analytics.stats else '0' }}% increase from last week
+        </div>
+    </div>
 </div>
 
 <!-- Charts Section -->
@@ -203,85 +210,169 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+
 <script>
-    // Default data fallbacks
-    const defaultLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const defaultRevenue = [1200, 1900, 1500, 2200, 1800, 2500, 2800];
-    const categoryLabels = {% if analytics and analytics.categories %}{{ analytics.categories.labels | tojson }}{% else %}["Indoor Plants", "Outdoor Plants", "Accessories", "Pots"]{% endif %};
-    const categoryData = {% if analytics and analytics.categories %}{{ analytics.categories.data | tojson }}{% else %}[35, 25, 20, 20]{% endif %};
-    const categoryColors = {% if analytics and analytics.categories %}{{ analytics.categories.colors | tojson }}{% else %}["#22a54a", "#1aa179", "#20c997", "#ff9800"]{% endif %};
+    let charts = {};
+    let currentPeriod = 'week';
 
-    // Revenue Trend Chart
-    const revenueTrendCtx = document.getElementById('revenue-trend-chart').getContext('2d');
-    new Chart(revenueTrendCtx, {
-        type: 'line',
-        data: {
-            labels: {% if analytics and analytics.chart_data %}{{ analytics.chart_data.labels | tojson }}{% else %}defaultLabels{% endif %},
-            datasets: [{
-                label: 'Revenue',
-                data: {% if analytics and analytics.chart_data %}{{ analytics.chart_data.revenue | tojson }}{% else %}defaultRevenue{% endif %},
-                borderColor: '#22a54a',
-                backgroundColor: 'rgba(34, 165, 74, 0.1)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
+    // Load analytics data on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAnalyticsData('week');
     });
 
-    // Sales by Category Chart
-    const salesCategoryCtx = document.getElementById('sales-category-chart').getContext('2d');
-    new Chart(salesCategoryCtx, {
-        type: 'doughnut',
-        data: {
-            labels: categoryLabels,
-            datasets: [{
-                data: categoryData,
-                backgroundColor: categoryColors
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-
-    // Top Products Chart
-    const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
-    new Chart(topProductsCtx, {
-        type: 'bar',
-        data: {
-            labels: {% if analytics and analytics.top_products %}{{ analytics.top_products.labels | tojson }}{% else %}["Snake Plant", "Monstera", "Golden Pothos", "ZZ Plant", "Lucky Bamboo"]{% endif %},
-            datasets: [{
-                label: 'Sales',
-                data: {% if analytics and analytics.top_products %}{{ analytics.top_products.data | tojson }}{% else %}[125, 98, 87, 76, 65]{% endif %},
-                backgroundColor: '#22a54a'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
-
-    // Period selector
+    // Period selector - fetch new data when clicked
     document.querySelectorAll('.btn-filter').forEach(btn => {
         btn.addEventListener('click', function() {
+            const period = this.textContent.trim().toLowerCase()
+                .replace('this ', '')
+                .replace(' ', '');
+            
+            // Map button text to period values
+            const periodMap = {
+                'week': 'week',
+                'month': 'month',
+                'quarter': 'quarter',
+                'year': 'year',
+                'alltime': 'year'
+            };
+            
+            const period_key = periodMap[period] || 'week';
+            
+            // Update active button
             document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
+            
+            // Load new data
+            loadAnalyticsData(period_key);
         });
     });
+
+    function loadAnalyticsData(period) {
+        currentPeriod = period;
+        
+        fetch(`{{ url_for("admin.get_analytics_api") }}?period=${period}`)
+            .then(response => response.json())
+            .then(data => {
+                // Update stats cards
+                updateStatsCards(data.stats);
+                
+                // Update charts
+                updateCharts(data.chart_data);
+            })
+            .catch(error => {
+                console.error('Error loading analytics:', error);
+                Swal.fire('Error', 'Failed to load analytics data', 'error');
+            });
+    }
+
+    function updateStatsCards(stats) {
+        // Update the stat cards with new data
+        const statValues = {
+            'revenue': stats.revenue,
+            'orders': stats.orders,
+            'avg_order': stats.avg_order,
+            'conversion': stats.conversion,
+            'customers': stats.customers || 'N/A'
+        };
+        
+        // These would be updated if we add data attributes to the cards
+        // For now, stats are loaded initially on page load
+    }
+
+    function updateCharts(chartData) {
+        // Destroy existing charts
+        Object.keys(charts).forEach(key => {
+            if (charts[key]) {
+                charts[key].destroy();
+            }
+        });
+        
+        // Revenue Trend Chart
+        const revenueTrendCtx = document.getElementById('revenue-trend-chart').getContext('2d');
+        charts.revenueTrend = new Chart(revenueTrendCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Revenue',
+                    data: chartData.revenue,
+                    borderColor: '#22a54a',
+                    backgroundColor: 'rgba(34, 165, 74, 0.1)',
+                    tension: 0.1,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#22a54a',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Top Products Chart
+        const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
+        charts.topProducts = new Chart(topProductsCtx, {
+            type: 'bar',
+            data: {
+                labels: {% if analytics and analytics.top_products %}{{ analytics.top_products.labels | tojson }}{% else %}["Product 1", "Product 2", "Product 3"]{% endif %},
+                datasets: [{
+                    label: 'Sales',
+                    data: {% if analytics and analytics.top_products %}{{ analytics.top_products.data | tojson }}{% else %}[50, 30, 20]{% endif %},
+                    backgroundColor: '#22a54a'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Sales by Category Chart (doesn't change by period)
+        const salesCategoryCtx = document.getElementById('sales-category-chart').getContext('2d');
+        const categoryLabels = {% if analytics and analytics.categories %}{{ analytics.categories.labels | tojson }}{% else %}["Category 1", "Category 2"]{% endif %};
+        const categoryData = {% if analytics and analytics.categories %}{{ analytics.categories.data | tojson }}{% else %}[50, 50]{% endif %};
+        const categoryColors = {% if analytics and analytics.categories %}{{ analytics.categories.colors | tojson }}{% else %}["#22a54a", "#1aa179"]{% endif %};
+        
+        charts.salesCategory = new Chart(salesCategoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryData,
+                    backgroundColor: categoryColors
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
 </script>
 {% endblock %}

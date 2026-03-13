@@ -285,7 +285,7 @@
             <label class="form-label">Product Image</label>
             <div class="image-preview" id="imagePreview">
                 {% if product.image %}
-                <img src="{{ url_for('static', filename='upload/' + product.image) }}" alt="Product Image">
+                <img src="{{ url_for('static', filename='images/product/resized/resized_' + product.image) }}" alt="Product Image">
                 {% else %}
                 <div class="image-preview-placeholder">
                     <i class="fas fa-cloud-upload-alt"></i>

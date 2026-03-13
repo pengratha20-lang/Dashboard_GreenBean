@@ -796,7 +796,7 @@
         <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
         <div class="stat-content">
             <div class="stat-label">Total Orders</div>
-            <div class="stat-value">1,234</div>
+            <div class="stat-value" id="totalOrdersStat">{{ stats.total_orders }}</div>
         </div>
     </div>
 
@@ -804,7 +804,7 @@
         <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
         <div class="stat-content">
             <div class="stat-label">Total Revenue</div>
-            <div class="stat-value">$12,450</div>
+            <div class="stat-value" id="totalRevenueStat">{{ stats.total_revenue }}</div>
         </div>
     </div>
 
@@ -812,7 +812,7 @@
         <div class="stat-icon"><i class="fas fa-users"></i></div>
         <div class="stat-content">
             <div class="stat-label">Total Users</div>
-            <div class="stat-value">892</div>
+            <div class="stat-value" id="totalUsersStat">{{ stats.active_customers }}</div>
         </div>
     </div>
 
@@ -820,7 +820,7 @@
         <div class="stat-icon"><i class="fas fa-cube"></i></div>
         <div class="stat-content">
             <div class="stat-label">Total Products</div>
-            <div class="stat-value">156</div>
+            <div class="stat-value" id="totalProductsStat">{{ stats.products_in_stock }}</div>
         </div>
     </div>
 </div>
@@ -852,14 +852,15 @@
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="recentOrdersBody">
+                {% for order in recent_orders %}
                 <tr>
-                    <td>#12345</td>
-                    <td>John Doe</td>
-                    <td>$45.99</td>
-                    <td>Delivered</td>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.customer }}</td>
+                    <td>{{ order.amount }}</td>
+                    <td><span class="status-badge status-{{ order.status.lower() }}">{{ order.status }}</span></td>
                 </tr>
-                <!-- Additional rows -->
+                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -867,8 +868,187 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 <script>
-    initializeSalesChart();
-    initializeCategoryChart();
+    let salesChartInstance = null;
+    let categoryChartInstance = null;
+
+    // Load dashboard data and initialize charts
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+        fetchAndInitializeCharts();
+    });
+
+    // Refresh dashboard data every 10 seconds
+    setInterval(loadDashboardData, 10000);
+
+    function loadDashboardData() {
+        fetch('{{ url_for("admin.get_dashboard_stats_api") }}')
+            .then(response => response.json())
+            .then(data => {
+                // Update stat cards
+                document.getElementById('totalOrdersStat').textContent = data.stats.total_orders;
+                document.getElementById('totalRevenueStat').textContent = data.stats.total_revenue;
+                document.getElementById('totalUsersStat').textContent = data.stats.active_customers;
+                document.getElementById('totalProductsStat').textContent = data.stats.products_in_stock;
+                
+                // Update recent orders table
+                const tbody = document.getElementById('recentOrdersBody');
+                tbody.innerHTML = '';
+                data.recent_orders.forEach(order => {
+                    const row = document.createElement('tr');
+                    const statusClass = 'status-' + order.status.toLowerCase().replace(' ', '-');
+                    row.innerHTML = `
+                        <td>${order.id}</td>
+                        <td>${order.customer}</td>
+                        <td>${order.amount}</td>
+                        <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error loading dashboard data:', error));
+    }
+
+    function fetchAndInitializeCharts() {
+        fetch('{{ url_for("admin.get_analytics_api", period="month") }}')
+            .then(response => response.json())
+            .then(data => {
+                initializeSalesChart(data.chart_data || {});
+                initializeCategoryChart(data.chart_data || {});
+            })
+            .catch(error => {
+                console.error('Error loading chart data:', error);
+                // Initialize with empty data if API fails
+                initializeSalesChart({});
+                initializeCategoryChart({});
+            });
+    }
+
+    function initializeSalesChart(chartData = {}) {
+        const ctx = document.getElementById('salesChart');
+        if (!ctx) return;
+
+        // Destroy existing chart if it exists
+        if (salesChartInstance) {
+            salesChartInstance.destroy();
+        }
+
+        // Prepare data with fallback to empty
+        const labels = chartData.labels || ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+        const revenue = chartData.revenue || [0, 0, 0, 0];
+        const orders = chartData.orders || [0, 0, 0, 0];
+
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Revenue ($)',
+                        data: revenue,
+                        borderColor: '#22a54a',
+                        backgroundColor: 'rgba(34, 165, 74, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#22a54a',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Orders',
+                        data: orders,
+                        borderColor: '#1aa179',
+                        backgroundColor: 'rgba(26, 161, 121, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#1aa179',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function initializeCategoryChart(chartData = {}) {
+        const ctx = document.getElementById('categoryChart');
+        if (!ctx) return;
+
+        // Destroy existing chart if it exists
+        if (categoryChartInstance) {
+            categoryChartInstance.destroy();
+        }
+
+        // Prepare data with fallback to empty
+        const labels = chartData.category_labels || ['Electronics', 'Clothing', 'Food', 'Others'];
+        const values = chartData.category_values || [30, 25, 20, 25];
+        const colors = [
+            '#22a54a',
+            '#1aa179',
+            '#155724',
+            '#f39c12'
+        ];
+
+        categoryChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderColor: '#fff',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 </script>
 {% endblock %}

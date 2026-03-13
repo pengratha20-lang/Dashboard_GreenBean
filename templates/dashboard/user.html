@@ -301,6 +301,7 @@
             <tr>
                 <th class="text-center">User</th>
                 <th class="text-center">Username</th>
+                <th class="text-center">Email</th>
                 <th class="text-center">Joined Date</th>
                 <th class="text-center">Actions</th>
             </tr>
@@ -311,11 +312,12 @@
                 <td class="align-items-center justify-content-center d-flex">
                     <div class="user-info">
                         {% if user.profile_pic and user.profile_pic != 'default.png' %}
-                        <img src="{{ url_for('static', filename='upload/' + user.profile_pic) }}"
+                        <img src="{{ url_for('static', filename='images/user/resized/resized_' + user.profile_pic) }}"
                             alt="{{ user.username }}" class="user-avatar">
                         {% else %}
-                        <img src="{{ url_for('static', filename='image/default-avatar.png') }}" alt="Default Avatar"
-                            class="user-avatar">
+                        <div class="user-avatar" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #22a54a, #1aa179); color: white; font-weight: 700; font-size: 1.2rem; border: 2px solid #22a54a;">
+                            {{ user.username[0].upper() }}
+                        </div>
                         {% endif %}
                         <!-- <div class="user-details">
                             <h4>User #{{ user.id }}</h4>
@@ -323,6 +325,7 @@
                     </div>
                 </td>
                 <td class="text-center">{{ user.username }}</td>
+                <td class="text-center">{{ user.email if user.email else 'N/A' }}</td>
                 <td class="text-center">{{ user.created_at if user.created_at else 'N/A' }}</td>
                 <td>
                     <div class="actions">
