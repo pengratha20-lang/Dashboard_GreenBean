@@ -1,0 +1,152 @@
+<!-- Right Sidebar for Shop Pages -->
+<div class="col-lg-3 sidebar-area bg-light border-start">
+  <div class="sidebar-content sticky-top" style="top: 120px;">
+    <!-- Mobile Close Button -->
+    <div class="d-lg-none mb-3">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-white border-bottom">
+        <h6 class="mb-0 fw-bold">
+          <i class="fas fa-filter me-2 text-success"></i>
+          Filters
+        </h6>
+        <button class="btn btn-sm btn-outline-secondary" id="mobile-filter-close" type="button">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Filter Categories -->
+    <div class="filter-section mb-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h6 class="mb-0 fw-bold">
+            <i class="fas fa-filter me-2 text-success"></i>
+            Filter by Category
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="categoryFilter" id="all-category" value="all" checked>
+            <label class="form-check-label d-flex justify-content-between" for="all-category">
+              All Products
+              <span class="badge bg-light text-dark">{{ product_counts.total or 0 }}</span>
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="categoryFilter" id="indoor-category" value="indoor">
+            <label class="form-check-label d-flex justify-content-between" for="indoor-category">
+              Indoor Plants
+              <span class="badge bg-light text-dark">{{ product_counts.indoor or 0 }}</span>
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="categoryFilter" id="outdoor-category" value="outdoor">
+            <label class="form-check-label d-flex justify-content-between" for="outdoor-category">
+              Outdoor Plants
+              <span class="badge bg-light text-dark">{{ product_counts.outdoor or 0 }}</span>
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="categoryFilter" id="pot-category" value="pot">
+            <label class="form-check-label d-flex justify-content-between" for="pot-category">
+              Pots & Planters
+              <span class="badge bg-light text-dark">{{ product_counts.pot or 0 }}</span>
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="categoryFilter" id="accessories-category" value="accessories">
+            <label class="form-check-label d-flex justify-content-between" for="accessories-category">
+              Accessories
+              <span class="badge bg-light text-dark">{{ product_counts.accessories or 0 }}</span>
+            </label>
+          </div>
+          <div class="d-grid mt-3">
+            <button class="btn btn-outline-secondary clear-filters-btn">Clear Filters</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Price Range Filter -->
+    <div class="filter-section mb-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h6 class="mb-0 fw-bold">
+            <i class="fas fa-dollar-sign me-2 text-success"></i>
+            Price Range
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-2 mb-3">
+            <div class="col">
+              <input type="number" class="form-control form-control-sm" placeholder="Min" id="price-min" min="0" value="">
+            </div>
+            <div class="col-auto">
+              <span class="text-muted">-</span>
+            </div>
+            <div class="col">
+              <input type="number" class="form-control form-control-sm" placeholder="Max" id="price-max" min="0" value="">
+            </div>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="priceRange" id="under-20" value="0-19.99">
+            <label class="form-check-label" for="under-20">Under $20</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="priceRange" id="20-35" value="20-35">
+            <label class="form-check-label" for="20-35">$20 - $35</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="priceRange" id="over-35" value="35.01-100">
+            <label class="form-check-label" for="over-35">Over $35</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links mb-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h6 class="mb-0 fw-bold">
+            <i class="fas fa-star me-2 text-success"></i>
+            Quick Links
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            <button class="list-group-item list-group-item-action border-0 px-0 quick-link-btn" data-filter="popular">
+              <i class="fas fa-fire text-warning me-2"></i>Featured Products
+              <span class="badge bg-light text-dark ms-auto">6</span>
+            </button>
+            <button class="list-group-item list-group-item-action border-0 px-0 quick-link-btn" data-filter="new">
+              <i class="fas fa-plus-circle text-success me-2"></i>New Arrivals
+              <span class="badge bg-light text-dark ms-auto">4</span>
+            </button>
+            <button class="list-group-item list-group-item-action border-0 px-0 quick-link-btn" data-filter="sale">
+              <i class="fas fa-tag text-danger me-2"></i>On Sale
+              <span class="badge bg-light text-dark ms-auto">1</span>
+            </button>
+            <button class="list-group-item list-group-item-action border-0 px-0 quick-link-btn" data-filter="rating">
+              <i class="fas fa-star text-warning me-2"></i>Top Rated
+              <span class="badge bg-light text-dark ms-auto">12</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Support -->
+    <div class="support-section">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <i class="fas fa-headset text-success mb-3" style="font-size: 2rem;"></i>
+          <h6 class="fw-bold">Need Help?</h6>
+          <p class="text-muted small mb-3">Our plant experts are here to help you choose the perfect plants!</p>
+          <button class="btn btn-outline-success btn-sm">
+            <i class="fas fa-phone me-1"></i>Contact Support
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

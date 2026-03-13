@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Green Bean - Premium Plant Store{% endblock %}
+
+{% block main_class %}style="margin-top: 90px;"{% endblock %}
+
+{% block content %}
+
+  <!-- Hero Section with Image Carousel -->
+  <section class="hero-carousel">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+      <div class="carousel-indicators">
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+      </div>
+      
+      <div class="carousel-inner">
+        <!-- Slide 1 -->
+        <div class="carousel-item active">
+          <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for('static', filename='images/slide_banner/Plant_banner.png') }}') center/cover;">
+            <div class="container h-100">
+              <div class="row h-100 align-items-center">
+                <div class="col-lg-6">
+                  <div class="hero-content text-white">
+                    <h1 class="display-4 fw-bold mb-4">Transform Your Space with Premium Plants</h1>
+                    <p class="lead mb-4">Discover our extensive collection of indoor and outdoor plants that bring life and beauty to your home.</p>
+                    <div class="d-flex gap-3">
+                      <a href="{{ url_for('shop.shop') }}" class="btn btn-success btn-lg px-4">Shop Now</a>
+                      <a href="#featured" class="btn btn-outline-light btn-lg px-4">Explore</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                  <div class="hero-badge">
+                    <div class="badge bg-success fs-6 p-3 rounded-pill">
+                      <i class="fas fa-shipping-fast me-2"></i>Free Delivery on Orders $50+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Slide 2 -->
+        <div class="carousel-item">
+          <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for('static', filename='images/slide_banner/Plant_banner_2.png') }}') center/cover;">
+            <div class="container h-100">
+              <div class="row h-100 align-items-center">
+                <div class="col-lg-6">
+                  <div class="hero-content text-white">
+                    <h1 class="display-4 fw-bold mb-4">Indoor Plants Collection</h1>
+                    <p class="lead mb-4">Create a green oasis in your home with our carefully selected indoor plants that purify air and enhance well-being.</p>
+                    <div class="d-flex gap-3">
+                      <a href="{{ url_for('shop.category', category='indoor') }}" class="btn btn-success btn-lg px-4">Browse Indoor Plants</a>
+                      <a href="#plant-care" class="btn btn-outline-light btn-lg px-4">Care Guide</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                  <div class="hero-stats">
+                    <div class="row text-white">
+                      <div class="col-4">
+                        <h3 class="fw-bold">500+</h3>
+                        <p>Happy Customers</p>
+                      </div>
+                      <div class="col-4">
+                        <h3 class="fw-bold">50+</h3>
+                        <p>Plant Varieties</p>
+                      </div>
+                      <div class="col-4">
+                        <h3 class="fw-bold">98%</h3>
+                        <p>Satisfaction Rate</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Slide 3 -->
+        <div class="carousel-item">
+          <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for('static', filename='images/slide_banner/Plant_banner_3.png') }}') center/cover;">
+            <div class="container h-100">
+              <div class="row h-100 align-items-center">
+                <div class="col-lg-6">
+                  <div class="hero-content text-white">
+                    <h1 class="display-4 fw-bold mb-4">Expert Plant Care Services</h1>
+                    <p class="lead mb-4">Get professional advice and care services from our plant experts. We're here to help your plants thrive!</p>
+                    <div class="d-flex gap-3">
+                      <a href="#services" class="btn btn-success btn-lg px-4">Our Services</a>
+                      <a href="{{ url_for('contact.contact') }}" class="btn btn-outline-light btn-lg px-4">Contact Us</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                  <div class="hero-features">
+                    <div class="feature-item text-white mb-3">
+                      <i class="fas fa-seedling fs-2 text-success mb-2"></i>
+                      <h5>Expert Consultation</h5>
+                    </div>
+                    <div class="feature-item text-white mb-3">
+                      <i class="fas fa-truck fs-2 text-success mb-2"></i>
+                      <h5>Fast Delivery</h5>
+                    </div>
+                    <div class="feature-item text-white">
+                      <i class="fas fa-heart fs-2 text-success mb-2"></i>
+                      <h5>Plant Care Support</h5>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  <!-- Promotional Banner -->
+  {% include 'components/promo-banner.html' %}
+
+  <!-- Features Section -->
+  {% include 'components/features-section.html' %}
+
+  <!-- Featured Products Section -->
+  {% include 'components/featured-products.html' %}
+
+  <!-- New Arrivals Section -->
+  {% include 'components/new-arrivals.html' %}
+
+  <!-- Popular Products Section -->
+  {% include 'components/popular-products.html' %}
+
+  <!-- Plant Care Guide Section -->
+  {% include 'components/plant-care-guide.html' %}
+
+  <!-- Statistics Section -->
+  {% include 'components/statistics.html' %}
+
+  <!-- Testimonials Section -->
+  {% include 'components/testimonials.html' %}
+
+  <!-- Services Section -->
+  {% include 'components/services.html' %}
+
+  <!-- Newsletter Section -->
+  {% include 'components/newsletter.html' %}
+
+  <!-- About Section -->
+  {% include 'components/about.html' %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+<script>
+  // Smooth scroll & hash offset for fixed navbar
+  document.addEventListener('DOMContentLoaded', function() {
+    const navbar = document.querySelector('#main-navbar');
+    const navHeight = navbar ? navbar.offsetHeight : 0;
+
+    // If page loaded with hash (from other pages), scroll to it with offset
+    if (window.location.hash) {
+      const id = window.location.hash.substring(1);
+      const el = document.getElementById(id);
+      if (el) {
+        // Slight timeout to ensure layout is ready
+        setTimeout(() => {
+          const y = el.getBoundingClientRect().top + window.pageYOffset - navHeight - 10;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }, 50);
+      }
+    }
+
+    // Smooth-scroll for in-page anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (!href || href === '#') return;
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          const y = target.getBoundingClientRect().top + window.pageYOffset - navHeight - 10;
+          window.history.pushState(null, '', href);
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      });
+    });
+  });
+
+  // Plant Care Details Toggle Function
+  function toggleCareDetails(detailsId, button) {
+    const details = document.getElementById(detailsId);
+    const isVisible = details.style.display !== 'none';
+    
+    if (isVisible) {
+      details.style.display = 'none';
+      button.textContent = 'Read More';
+      button.classList.remove('btn-success');
+      button.classList.add('btn-outline-success');
+    } else {
+      details.style.display = 'block';
+      button.textContent = 'Show Less';
+      button.classList.remove('btn-outline-success');
+      button.classList.add('btn-success');
+    }
+  }
+
+  // Search functionality
+  function handleSearch(event) {
+    event.preventDefault();
+    const searchTerm = document.getElementById('search-input').value.trim();
+    if (searchTerm) {
+      // Redirect to shop page with search parameter
+      window.location.href = `{{ url_for('shop.shop') }}?search=${encodeURIComponent(searchTerm)}`;
+    }
+  }
+</script>
+{% endblock %}

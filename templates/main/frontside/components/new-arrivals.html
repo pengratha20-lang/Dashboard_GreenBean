@@ -1,0 +1,59 @@
+<!-- New Arrivals Section -->
+<section class="new-arrivals py-5" id="new-arrivals">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">New Arrivals</h2>
+      <div class="section-divider"></div>
+    </div>
+    <div class="row g-4">
+      <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+        <div class="product-card">
+          <div class="product-image">
+            <img src="{{ url_for('static', filename='images/indoor/monstera.jpg') }}" class="img-fluid" alt="Monstera Plant">
+          </div>
+          <div class="product-info">
+            <h5 class="product-title">Monstera</h5>
+            <p class="product-description">Beautiful indoor plant perfect for modern homes.</p>
+            <a href="{{ url_for('shop.shop') }}" class="btn btn-product">Shop Now</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+        <div class="product-card">
+          <div class="product-image">
+            <img src="{{ url_for('static', filename='images/indoor/plant1.jpg') }}" class="img-fluid" alt="Jute Plants">
+          </div>
+          <div class="product-info">
+            <h5 class="product-title">Jute Plants</h5>
+            <p class="product-description">Eco-friendly natural fiber plants for your garden.</p>
+            <a href="{{ url_for('shop.shop') }}" class="btn btn-product">Shop Now</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+        <div class="product-card">
+          <div class="product-image">
+            <img src="{{ url_for('static', filename='images/indoor/plant2.jpg') }}" class="img-fluid" alt="Cactus Plant">
+          </div>
+          <div class="product-info">
+            <h5 class="product-title">Cactus</h5>
+            <p class="product-description">Low-maintenance desert plants for any space.</p>
+            <a href="{{ url_for('shop.shop') }}" class="btn btn-product">Shop Now</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+        <div class="product-card">
+          <div class="product-image">
+            <img src="{{ url_for('static', filename='images/indoor/plant3.jpg') }}" class="img-fluid" alt="Lily Flower">
+          </div>
+          <div class="product-info">
+            <h5 class="product-title">Lily Flower</h5>
+            <p class="product-description">Elegant flowering plants that brighten any room.</p>
+            <a href="{{ url_for('shop.shop') }}" class="btn btn-product">Shop Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

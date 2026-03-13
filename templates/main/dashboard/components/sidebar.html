@@ -1,0 +1,19 @@
+<!-- SIDEBAR COMPONENT -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <i class="fas fa-leaf"></i>
+        <h3>Green Bean</h3>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="{{ url_for('admin.dashboard_route') }}" {% if request.endpoint == 'admin.dashboard_route' %}class="active"{% endif %}><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="{{ url_for('product_module.products_route') }}" {% if request.endpoint == 'product_module.products_route' %}class="active"{% endif %}><i class="fas fa-cube"></i> Products</a></li>
+        <li><a href="{{ url_for('order_module.orders_route') }}" {% if request.endpoint == 'order_module.orders_route' %}class="active"{% endif %}><i class="fas fa-shopping-cart"></i> Orders</a></li>
+        <li><a href="{{ url_for('customer_module.customers_route') }}" {% if request.endpoint == 'customer_module.customers_route' %}class="active"{% endif %}><i class="fas fa-users"></i> Customers</a></li>
+        <li><a href="{{ url_for('category_module.categories_route') }}" {% if request.endpoint == 'category_module.categories_route' %}class="active"{% endif %}><i class="fas fa-barcode"></i> Categories</a></li>
+        <li><a href="{{ url_for('discount_module.discounts_route') }}" {% if request.endpoint == 'discount_module.discounts_route' %}class="active"{% endif %}><i class="fas fa-tag"></i> Discounts</a></li>
+        <li><a href="{{ url_for('user_module.users_route') }}" {% if request.endpoint == 'user_module.users_route' %}class="active"{% endif %}><i class="fas fa-user-tie"></i> Users</a></li>
+        <li><a href="{{ url_for('analytics_module.analytics_route') }}" {% if request.endpoint == 'analytics_module.analytics_route' %}class="active"{% endif %}><i class="fas fa-chart-pie"></i> Analytics</a></li>
+        <li><a href="{{ url_for('settings_module.settings_route') }}" {% if request.endpoint == 'settings_module.settings_route' %}class="active"{% endif %}><i class="fas fa-cog"></i> Settings</a></li>
+        <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+</aside>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/product.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/shop-layout.css') }}">
+    <style>
+        .confirmation-main {
+            min-height: 100vh;
+            background: #f8f9fa;
+            padding-top: 120px;
+        }
+        .confirmation-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #d4edda;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem auto;
+        }
+        .order-details {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .order-item {
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    {% include 'components/shop-navbar.html' %}
+
+    <main class="confirmation-main">
+        <div class="container">
+            <!-- Success Card -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="confirmation-card">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                        </div>
+                        <h1 class="display-5 fw-bold text-success mb-3">Order Confirmed!</h1>
+                        <p class="lead text-muted mb-4">Thank you for your purchase. Your order has been successfully placed.</p>
+                        <div class="order-number mb-4">
+                            <h4>Order Number: <span class="text-primary">{{ order.order_id }}</span></h4>
+                            <p class="text-muted">Please keep this number for your records</p>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-envelope me-2"></i>
+                            A confirmation email has been sent to <strong>{{ order.customer_info.email }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Order Details -->
+                <div class="col-lg-8">
+                    <div class="order-details">
+                        <h4 class="mb-4"><i class="fas fa-box me-2 text-success"></i>Order Details</h4>
+                        
+                        <!-- Order Items -->
+                        <div class="order-items">
+                            {% for item in order.items %}
+                            <div class="order-item">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <img src="{{ item.image }}" alt="{{ item.name }}" class="img-fluid rounded" style="width: 80px; height: 80px; object-fit: cover;">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mb-1">{{ item.name }}</h6>
+                                        <p class="text-muted mb-0">{{ item.description or 'Premium quality plant for your home or garden.' }}</p>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <span class="badge bg-light text-dark">Qty: {{ item.quantity }}</span>
+                                    </div>
+                                    <div class="col-md-2 text-end">
+                                        <span class="fw-bold">${{ "%.2f"|format(item.price * item.quantity) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="order-summary mt-4 pt-4 border-top">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>Order Summary</h5>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal:</span>
+                                        <span>${{ "%.2f"|format(order.order_summary.subtotal) }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Shipping:</span>
+                                        <span>
+                                            {% if order.order_summary.shipping_cost == 0 %}
+                                                <span class="text-success">Free</span>
+                                            {% else %}
+                                                ${{ "%.2f"|format(order.order_summary.shipping_cost) }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span>Tax:</span>
+                                        <span>${{ "%.2f"|format(order.order_summary.tax_amount) }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between border-top pt-2">
+                                        <strong>Total:</strong>
+                                        <strong class="text-success">${{ "%.2f"|format(order.order_summary.total) }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer & Shipping Info -->
+                    <div class="order-details">
+                        <h4 class="mb-4"><i class="fas fa-user me-2 text-success"></i>Customer Information</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Contact Information</h6>
+                                <p class="mb-1">{{ order.customer_info.first_name }} {{ order.customer_info.last_name }}</p>
+                                <p class="mb-1">{{ order.customer_info.email }}</p>
+                                {% if order.customer_info.phone %}
+                                <p class="mb-0">{{ order.customer_info.phone }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Shipping Address</h6>
+                                <p class="mb-1">{{ order.customer_info.shipping_address.street }}</p>
+                                <p class="mb-0">{{ order.customer_info.shipping_address.city }}, {{ order.customer_info.shipping_address.state }} {{ order.customer_info.shipping_address.zip_code }}</p>
+                                <p class="mb-0">{{ order.customer_info.shipping_address.country }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next Steps -->
+                <div class="col-lg-4">
+                    <div class="order-details">
+                        <h5 class="mb-3"><i class="fas fa-clock me-2 text-success"></i>What's Next?</h5>
+                        
+                        <div class="timeline">
+                            <div class="d-flex mb-3">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-check-circle text-success me-3"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Order Confirmed</h6>
+                                    <small class="text-muted">{{ order.order_date[:10] }}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex mb-3">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-box text-warning me-3"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Processing Order</h6>
+                                    <small class="text-muted">1-2 business days</small>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex mb-3">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-truck text-info me-3"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Shipped</h6>
+                                    <small class="text-muted">3-5 business days</small>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex mb-3">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-home text-secondary me-3"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Delivered</h6>
+                                    <small class="text-muted">Estimated delivery date will be provided</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-light mt-4">
+                            <h6><i class="fas fa-seedling me-2"></i>Plant Care</h6>
+                            <small>Your plants will arrive with care instructions. Keep them in a cool, shaded area until you're ready to plant them.</small>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="order-details">
+                        <h5 class="mb-3">Quick Actions</h5>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('shop.shop') }}" class="btn btn-success">
+                                <i class="fas fa-leaf me-2"></i>Continue Shopping
+                            </a>
+                            <a href="{{ url_for('checkout.my_orders') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-list me-2"></i>View All Orders
+                            </a>
+                            <button class="btn btn-outline-secondary" onclick="window.print()">
+                                <i class="fas fa-print me-2"></i>Print Receipt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    {% include 'components/footer.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Clear cart from localStorage since order is complete
+        localStorage.removeItem('cart');
+        
+        // Update cart badge
+        const cartBadge = document.getElementById('cart-badge');
+        if (cartBadge) {
+            cartBadge.textContent = '0';
+        }
+        
+        // Trigger cart update event
+        window.dispatchEvent(new CustomEvent('cartUpdated', {
+            detail: { items: [], action: 'clear' }
+        }));
+    </script>
+</body>
+</html>
