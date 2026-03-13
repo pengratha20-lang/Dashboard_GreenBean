@@ -5,7 +5,7 @@ from model.order import Order, OrderItem
 from model.customer import Customer
 from model.discount import Discount
 from datetime import datetime
-from services.coupons import increment_global_usage_if_completed
+from backend.services.coupons import increment_global_usage_if_completed
 
 # Create Blueprint
 admin_bp = Blueprint('order_module', __name__, url_prefix='')

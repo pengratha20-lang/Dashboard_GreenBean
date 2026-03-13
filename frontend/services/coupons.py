@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-from routes.fronts.customer import Customer
-from routes.fronts.discount import Discount
-from routes.fronts.order import Order
+from model.customer import Customer
+from model.discount import Discount
+from model.order import Order
 
 
 class CouponError(Exception):

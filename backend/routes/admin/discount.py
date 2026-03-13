@@ -5,7 +5,7 @@ from model.discount import Discount
 from model.order import Order
 from model.customer import Customer
 from datetime import datetime
-from services.coupons import CouponError, validate_and_calculate_coupon
+from backend.services.coupons import CouponError, validate_and_calculate_coupon
 
 # Create Blueprint
 admin_bp = Blueprint('discount_module', __name__, url_prefix='')

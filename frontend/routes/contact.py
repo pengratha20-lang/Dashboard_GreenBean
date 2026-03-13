@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, flash
-from services.telegram_bot import send_telegram_alert
+from frontend.services.telegram_bot import send_telegram_alert
 import re
 
 contact_bp = Blueprint('contact', __name__)

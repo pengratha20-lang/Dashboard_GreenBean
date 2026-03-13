@@ -4,7 +4,7 @@ import json
 import os
 
 import stripe
-from services.coupons import validate_and_calculate_coupon, CouponError
+from frontend.services.coupons import validate_and_calculate_coupon, CouponError
 
 checkout_bp = Blueprint('checkout', __name__)
 

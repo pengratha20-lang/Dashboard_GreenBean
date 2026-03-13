@@ -1,12 +1,23 @@
 from flask import Flask, redirect, url_for, session
 from flask_migrate import Migrate
 import os
+from jinja2 import FileSystemLoader, ChoiceLoader
 import config
 from functools import wraps
 from database import db
 from datetime import timedelta
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
+# Create Flask app with custom template loader
+app = Flask(__name__, static_folder='static')
+
+# Configure Jinja to search multiple template directories
+template_loaders = [
+    FileSystemLoader(os.path.join(os.path.dirname(__file__), 'backend/templates')),
+    FileSystemLoader(os.path.join(os.path.dirname(__file__), 'frontend/templates')),
+    FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates'))
+]
+app.jinja_loader = ChoiceLoader(template_loaders)
+
 app.config.from_object(config)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -61,7 +72,7 @@ from frontend.routes.wishlist_routes import wishlist_bp
 from frontend.routes.orders_routes import orders_bp
 
 # ==================== REGISTER BACKEND BLUEPRINTS ====================
-app.register_blueprint(auth_bp)
+app.register_blueprint(auth_bp, name='admin_auth')  # Renamed to avoid conflicts
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(product_bp)
 app.register_blueprint(order_bp)
@@ -82,8 +93,7 @@ app.register_blueprint(shop_bp)
 app.register_blueprint(cart_bp)
 app.register_blueprint(front_product_bp)
 app.register_blueprint(checkout_bp)
-# Note: front_auth_bp registration - check for route conflicts with backend auth_bp
-# app.register_blueprint(front_auth_bp)  # Comment out if conflicts exist
+app.register_blueprint(front_auth_bp, name='auth')  # Using 'auth' for frontend
 app.register_blueprint(wishlist_bp)
 app.register_blueprint(orders_bp)
 
@@ -92,7 +102,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            return redirect(url_for('auth.login'))
+            return redirect(url_for('admin_auth.login'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -101,12 +111,12 @@ def login_required(f):
 def index():
     if 'user_id' in session:
         return redirect(url_for('admin.dashboard_route'))
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('admin_auth.login'))
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('admin_auth.login'))
 
 if __name__ == '__main__':
     with app.app_context():
