@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-success mb-4">
+                        <i class="fas fa-user-circle me-2"></i>Account
+                    </h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{{ url_for('auth.profile') }}" class="text-decoration-none text-dark">
+                                <i class="fas fa-user me-2 text-success"></i>My Profile
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('wishlist.view_wishlist') }}" class="text-decoration-none text-dark fw-bold">
+                                <i class="fas fa-heart me-2 text-success"></i>My Wishlist
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('orders.my_orders') }}" class="text-decoration-none text-dark">
+                                <i class="fas fa-box me-2 text-success"></i>My Orders
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <hr>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('auth.logout') }}" class="text-decoration-none text-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-heart me-2 text-danger"></i>My Wishlist
+                    </h3>
+                    
+                    {% if wishlist_items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Added On</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in wishlist_items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            {% if item.product_image %}
+                                            <img src="{{ item.product_image }}" alt="{{ item.product_name }}" 
+                                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                            {% else %}
+                                            <div style="width: 60px; height: 60px; background-color: #f0f0f0; 
+                                                        border-radius: 8px; display: flex; align-items: center; 
+                                                        justify-content: center;">
+                                                <i class="fas fa-leaf text-success"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ item.product_name }}</h6>
+                                                <small class="text-muted">ID: {{ item.product_id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success">${{ "%.2f"|format(item.product_price) }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ item.created_at }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-success" 
+                                                    onclick="addToCart({{ item.product_id }}, '{{ item.product_name }}', {{ item.product_price }})">
+                                                <i class="fas fa-shopping-cart me-1"></i>Add to Cart
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="removeFromWishlist({{ item.id }})">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-heart-broken fs-1 text-muted mb-3"></i>
+                        <h5 class="text-muted">Your wishlist is empty</h5>
+                        <p class="text-muted mb-4">Start adding items to your wishlist from our shop</p>
+                        <a href="{{ url_for('shop.shop') }}" class="btn btn-success">
+                            <i class="fas fa-store me-2"></i>Continue Shopping
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addToCart(productId, productName, productPrice) {
+    fetch('{{ url_for("cart.add_to_cart") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            id: productId,
+            name: productName,
+            price: productPrice,
+            quantity: 1
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Added to cart!', 'success');
+            // Update cart badge
+            updateCartBadge();
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error adding to cart', 'danger');
+    });
+}
+
+function removeFromWishlist(wishlistId) {
+    if (confirm('Are you sure you want to remove this item from your wishlist?')) {
+        fetch(`{{ url_for('wishlist.remove_from_wishlist', wishlist_id='') }}${wishlistId}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Removed from wishlist', 'success');
+                location.reload();
+            } else {
+                showAlert(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error removing from wishlist', 'danger');
+        });
+    }
+}
+
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.insertBefore(alertDiv, document.body.firstChild);
+    setTimeout(() => alertDiv.remove(), 5000);
+}
+</script>
+
+<style>
+    .card {
+        border-radius: 10px;
+    }
+    
+    .table {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .btn-group {
+        gap: 5px;
+    }
+    
+    .btn-outline-success:hover {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    
+    .list-unstyled li a {
+        transition: all 0.3s ease;
+        padding: 8px 12px;
+        border-radius: 6px;
+        display: block;
+    }
+    
+    .list-unstyled li a:hover {
+        background-color: #e8f5e9;
+        padding-left: 18px;
+    }
+</style>
+{% endblock %}

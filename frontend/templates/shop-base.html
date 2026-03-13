@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}Shop premium plants at Green Bean - Indoor plants, outdoor plants, and accessories{% endblock %}">
+  <title>{% block title %}Green Bean Plant Store{% endblock %}</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" 
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" 
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/product.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/shop-layout.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+  <!-- Shop Navigation -->
+  {% include 'components/shop-navbar.html' %}
+
+  <!-- Main Content Area -->
+  <main class="main-content pt-5">
+    <div class="container-fluid">
+      <div class="row g-0">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </main>
+
+  <!-- Mobile Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- Footer -->
+  {% include 'components/footer.html' %}
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
+          integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+
+  <!-- Custom JS -->
+  <script src="{{ url_for('static', filename='js/cart-badge-fix.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/shop.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+
+  <!-- Mobile Sidebar Styles -->
+  <style>
+    .clickable-card {
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .clickable-card:hover {
+      transform: translateY(-2px);
+    }
+    .text-truncate-2-lines {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.4;
+      max-height: 2.8em;
+    }
+    
+    /* Mobile Sidebar Styles */
+    @media (max-width: 991.98px) {
+      .sidebar-area {
+        position: fixed !important;
+        top: 0 !important;
+        right: -100% !important;
+        width: 300px !important;
+        height: 100vh !important;
+        z-index: 1050 !important;
+        transition: right 0.3s ease-in-out !important;
+        overflow-y: auto !important;
+      }
+      
+      .sidebar-area.show {
+        right: 0 !important;
+      }
+      
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        display: none;
+      }
+      
+      .sidebar-overlay.show {
+        display: block;
+      }
+      
+      .sidebar-content {
+        position: static !important;
+        padding-top: 0 !important;
+      }
+    }
+  </style>
+
+  <!-- Mobile Sidebar Toggle Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+      const mobileFilterCloseBtn = document.getElementById('mobile-filter-close');
+      const sidebarArea = document.querySelector('.sidebar-area');
+      const sidebarOverlay = document.getElementById('sidebar-overlay');
+      const mobileFilterBtn = document.getElementById('mobile-filter-btn');
+      
+      function openSidebar() {
+        if (sidebarArea && sidebarOverlay) {
+          sidebarArea.classList.add('show');
+          sidebarOverlay.classList.add('show');
+          document.body.style.overflow = 'hidden';
+        }
+      }
+      
+      function closeSidebar() {
+        if (sidebarArea && sidebarOverlay) {
+          sidebarArea.classList.remove('show');
+          sidebarOverlay.classList.remove('show');
+          document.body.style.overflow = '';
+        }
+      }
+      
+      if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', openSidebar);
+      }
+      
+      if (mobileFilterBtn) {
+        mobileFilterBtn.addEventListener('click', openSidebar);
+      }
+      
+      if (mobileFilterCloseBtn) {
+        mobileFilterCloseBtn.addEventListener('click', closeSidebar);
+      }
+      
+      if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+      }
+      
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeSidebar();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

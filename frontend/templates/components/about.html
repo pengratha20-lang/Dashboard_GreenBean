@@ -1,0 +1,33 @@
+<!-- About Section -->
+<section class="about-section py-5" id="about">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">About Us</h2>
+      <div class="section-divider"></div>
+      <p class="lead text-muted">Learn more about our passion for plants and commitment to quality</p>
+    </div>
+    <div class="row g-5">
+      <div class="col-lg-6">
+        <h3 class="fw-bold mb-4">Who We Are</h3>
+        <p class="text-muted mb-4">At Green Bean, we are dedicated to bringing the beauty and benefits of plants into your home and life. Our team of plant enthusiasts and experts carefully curates a diverse selection of indoor and outdoor plants, ensuring that each one meets our high standards of quality and sustainability.</p>
+        <p class="text-muted mb-4">We believe in the power of plants to transform spaces, improve well-being, and create a healthier environment. That's why we go the extra mile to provide not just plants, but also the knowledge and support you need to help them thrive.</p>
+        <a href="#services" class="btn btn-success btn-lg">Discover Our Services</a>
+      </div>
+      <div class="col-lg-6">
+        <div class="about-image-grid">
+          <div class="row g-3">
+            <div class="col-6">
+              <img src="{{ url_for('static', filename='images/indoor/snake-plant.jpg') }}" alt="Our nursery" class="img-fluid rounded shadow">
+            </div>
+            <div class="col-6">
+              <img src="{{ url_for('static', filename='images/indoor/monstera.jpg') }}" alt="Plant care" class="img-fluid rounded shadow">
+            </div>
+            <div class="col-12">
+              <img src="{{ url_for('static', filename='images/outdoor/Kentia_Palm.jpg') }}" alt="Expert consultation" class="img-fluid rounded shadow" style="height: 200px; width: 100%; object-fit: cover;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

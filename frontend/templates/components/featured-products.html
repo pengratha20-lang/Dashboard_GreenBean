@@ -1,0 +1,59 @@
+<!-- Featured Products Section -->
+<section class="featured-products py-5" id="featured">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">Featured Products</h2>
+      <div class="section-divider"></div>
+    </div>
+    <div class="row g-4">
+      <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+        <a href="{{ url_for('shop.shop') }}" class="text-decoration-none">
+          <div class="category-card">
+            <div class="category-image">
+              <img src="{{ url_for('static', filename='images/indoor/monstera.jpg') }}" alt="Indoor Plants Collection" class="img-fluid">
+            </div>
+            <div class="category-overlay">
+              <h3 class="category-title">Indoor Plants</h3>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+        <a href="{{ url_for('shop.shop') }}" class="text-decoration-none">
+          <div class="category-card">
+            <div class="category-image">
+              <img src="{{ url_for('static', filename='images/outdoor/palm_tree.jpg') }}" alt="Outdoor Plants Collection" class="img-fluid">
+            </div>
+            <div class="category-overlay">
+              <h3 class="category-title">Outdoor Plants</h3>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+        <a href="{{ url_for('shop.shop') }}" class="text-decoration-none">
+          <div class="category-card">
+            <div class="category-image">
+              <img src="{{ url_for('static', filename='images/accessories/Garden_Shears.jpg') }}" alt="Plant Accessories Collection" class="img-fluid">
+            </div>
+            <div class="category-overlay">
+              <h3 class="category-title">Accessories</h3>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+        <a href="{{ url_for('shop.shop') }}" class="text-decoration-none">
+          <div class="category-card">
+            <div class="category-image">
+              <img src="{{ url_for('static', filename='images/indoor/port.jpg') }}" alt="Plant Pots Collection" class="img-fluid">
+            </div>
+            <div class="category-overlay">
+              <h3 class="category-title">Pots</h3>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

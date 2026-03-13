@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Contact - Green Bean{% endblock %}
+
+{% block main_class %}style="margin-top: 90px;"{% endblock %}
+
+{% block content %}
+<section class="contact-section py-5 bg-light">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">Get in Touch</h2>
+      <div class="section-divider"></div>
+      <p class="lead text-muted">We're here to help with all your plant needs. Reach out to us anytime!</p>
+    </div>
+    <div class="row g-5">
+      <div class="col-lg-6">
+        <div class="contact-form-wrapper p-5 bg-white rounded shadow-sm h-100">
+          <h3 class="mb-4 fw-bold">Send Us a Message</h3>
+          
+          <!-- Alert Messages -->
+          <div id="contact-alert" class="alert d-none" role="alert"></div>
+          
+          <form id="contact-form" method="POST">
+            <div class="mb-3">
+              <label for="contact-name" class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="contact-name" name="name" placeholder="John Doe" required>
+            </div>
+            <div class="mb-3">
+              <label for="contact-email" class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="contact-email" name="email" placeholder="john.doe@example.com" required>
+            </div>
+            <div class="mb-3">
+              <label for="contact-message" class="form-label">Message</label>
+              <textarea class="form-control" id="contact-message" name="message" rows="5" placeholder="How can we help you?" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-success btn-lg w-100" id="submit-btn">
+              <span class="btn-text">Send Message</span>
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              <span class="loading-text d-none">Sending...</span>
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="contact-info-wrapper p-5 bg-white rounded shadow-sm h-100">
+          <h3 class="mb-4 fw-bold">Contact Information</h3>
+          <div class="info-item d-flex align-items-start mb-4">
+            <i class="fas fa-map-marker-alt fs-4 text-success me-4"></i>
+            <div>
+              <h5 class="mb-1">Our Address</h5>
+              <p class="text-muted mb-0">123 Plant Street, Garden City, 54321</p>
+            </div>
+          </div>
+          <div class="info-item d-flex align-items-start mb-4">
+            <i class="fas fa-phone fs-4 text-success me-4"></i>
+            <div>
+              <h5 class="mb-1">Phone</h5>
+              <p class="text-muted mb-0">(123) 456-7890</p>
+            </div>
+          </div>
+          <div class="info-item d-flex align-items-start mb-4">
+            <i class="fas fa-envelope fs-4 text-success me-4"></i>
+            <div>
+              <h5 class="mb-1">Email</h5>
+              <p class="text-muted mb-0">contact@greenbean.com</p>
+            </div>
+          </div>
+          <h5 class="mt-5 mb-3">Follow Us</h5>
+          <div class="social-links-contact">
+            <a href="#" class="btn btn-outline-success me-2"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="btn btn-outline-success me-2"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="btn btn-outline-success me-2"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contactForm = document.getElementById('contact-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    const loadingText = submitBtn.querySelector('.loading-text');
+    const alertDiv = document.getElementById('contact-alert');
+    
+    contactForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = new FormData(contactForm);
+        
+        // Validate form
+        const name = formData.get('name').trim();
+        const email = formData.get('email').trim();
+        const message = formData.get('message').trim();
+        
+        if (!name || !email || !message) {
+            showAlert('Please fill in all fields!', 'danger');
+            return;
+        }
+        
+        // Show loading state
+        setLoadingState(true);
+        
+        try {
+            // Submit form
+            const response = await fetch('{{ url_for("contact.contact") }}', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert(result.message, 'success');
+                contactForm.reset(); // Clear form
+            } else {
+                showAlert(result.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('An error occurred. Please try again later.', 'danger');
+        } finally {
+            setLoadingState(false);
+        }
+    });
+    
+    function setLoadingState(loading) {
+        if (loading) {
+            submitBtn.disabled = true;
+            btnText.classList.add('d-none');
+            spinner.classList.remove('d-none');
+            loadingText.classList.remove('d-none');
+        } else {
+            submitBtn.disabled = false;
+            btnText.classList.remove('d-none');
+            spinner.classList.add('d-none');
+            loadingText.classList.add('d-none');
+        }
+    }
+    
+    function showAlert(message, type) {
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        alertDiv.classList.remove('d-none');
+        
+        // Auto-hide success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(() => {
+                alertDiv.classList.add('d-none');
+            }, 5000);
+        }
+        
+        // Scroll to alert
+        alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+});
+</script>
+{% endblock %}

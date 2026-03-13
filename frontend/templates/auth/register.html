@@ -1,0 +1,266 @@
+{% extends "auth-base.html" %}
+
+{% block title %}Create Account - Green Bean Premium Plant Store{% endblock %}
+
+{% block main_class %}style="margin-top: 90px;"{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section with Gradient Background -->
+<!-- <section class="register-hero" style="background: linear-gradient(135deg, #4bbb17 0%, #3a9012 100%); padding: 60px 0; margin-bottom: 60px;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-white">
+                <h1 class="display-5 fw-bold mb-3">Join Green Bean Today!</h1>
+                <p class="lead mb-4">Create your account and start exploring our amazing collection of plants and gardening accessories.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <div class="hero-feature">
+                        <i class="fas fa-check-circle text-white fs-5 mb-2"></i>
+                        <p class="small mb-0">Instant Setup</p>
+                    </div>
+                    <div class="hero-feature">
+                        <i class="fas fa-gift text-white fs-5 mb-2"></i>
+                        <p class="small mb-0">Exclusive Offers</p>
+                    </div>
+                    <div class="hero-feature">
+                        <i class="fas fa-star text-white fs-5 mb-2"></i>
+                        <p class="small mb-0">Rewards Points</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div style="display: flex; justify-content: center; align-items: center;">
+                    <i class="fas fa-plant-wilt" style="font-size: 150px; color: rgba(255,255,255,0.1);"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> -->
+
+<!-- Register Form Section -->
+<section class="register-section" style="margin-top: -7rem;">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-5 col-md-7">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' if category == 'success' else 'warning' if category == 'warning' else 'info' }} border-0 alert-dismissible fade show mb-4" role="alert" style="border-left: 4px solid {% if category == 'danger' %}#dc3545{% elif category == 'success' %}#28a745{% elif category == 'warning' %}#ffc107{% else %}#17a2b8{% endif %};">
+                                <i class="fas fa-{% if category == 'danger' %}exclamation-circle{% elif category == 'success' %}check-circle{% elif category == 'warning' %}warning{% else %}info-circle{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Register Card -->
+                <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                    <!-- Card Header -->
+                    <div style="background: linear-gradient(135deg, #4bbb17 0%, #3a9012 100%); padding: 40px; text-align: center; color: white;">
+                        <i class="fas fa-user-plus" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                        <h2 class="fw-bold mb-2">Create Your Account</h2>
+                        <p class="text-white-50 mb-0">Join our community and start shopping today</p>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body p-5">
+                        <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                            <!-- Full Name Field -->
+                            <div class="mb-4">
+                                <label for="name" class="form-label fw-600 mb-2">Full Name</label>
+                                <div class="input-group" style="border-radius: 12px; overflow: hidden;">
+                                    <span class="input-group-text bg-light border-0" style="border-radius: 12px 0 0 12px;">
+                                        <i class="fas fa-user text-success"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-0" id="name" name="name" 
+                                           placeholder="John Doe" required style="padding: 12px; font-size: 16px;">
+                                </div>
+                                <small class="text-muted d-block mt-2">We'd love to know your name!</small>
+                            </div>
+
+                            <!-- Email Field -->
+                            <div class="mb-4">
+                                <label for="email" class="form-label fw-600 mb-2">Email Address</label>
+                                <div class="input-group" style="border-radius: 12px; overflow: hidden;">
+                                    <span class="input-group-text bg-light border-0" style="border-radius: 12px 0 0 12px;">
+                                        <i class="fas fa-envelope text-success"></i>
+                                    </span>
+                                    <input type="email" class="form-control border-0" id="email" name="email" 
+                                           placeholder="your.email@example.com" required style="padding: 12px; font-size: 16px;">
+                                </div>
+                                <small class="text-muted d-block mt-2">We'll never share your email with anyone.</small>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-600 mb-2">Create Password</label>
+                                <div class="input-group" style="border-radius: 12px; overflow: hidden;">
+                                    <span class="input-group-text bg-light border-0" style="border-radius: 12px 0 0 12px;">
+                                        <i class="fas fa-lock text-success"></i>
+                                    </span>
+                                    <input type="password" class="form-control border-0" id="password" name="password" 
+                                           placeholder="Create a strong password" required minlength="6" style="padding: 12px; font-size: 16px;">
+                                </div>
+                                <small class="text-muted d-block mt-2">Minimum 6 characters recommended.</small>
+                            </div>
+
+                            <!-- Confirm Password Field -->
+                            <div class="mb-4">
+                                <label for="confirm_password" class="form-label fw-600 mb-2">Confirm Password</label>
+                                <div class="input-group" style="border-radius: 12px; overflow: hidden;">
+                                    <span class="input-group-text bg-light border-0" style="border-radius: 12px 0 0 12px;">
+                                        <i class="fas fa-check text-success"></i>
+                                    </span>
+                                    <input type="password" class="form-control border-0" id="confirm_password" 
+                                           name="confirm_password" placeholder="Confirm your password" required style="padding: 12px; font-size: 16px;">
+                                </div>
+                            </div>
+
+                            <!-- Terms & Conditions -->
+                            <div class="form-check mb-4 pt-3 pb-3 rounded-3" style="background: #f8f9fa; border-left: 4px solid #4bbb17; padding-left: 35px; padding-right: 10px;">
+                                <input class="form-check-input " type="checkbox" id="terms" name="terms" required>
+                                <label class="form-check-label small" for="terms">
+                                    I agree to the <a href="#" class="text-success fw-600 text-decoration-none">Terms & Conditions</a> 
+                                    and <a href="#" class="text-success fw-600 text-decoration-none">Privacy Policy</a>
+                                </label>
+                            </div>
+
+                            <!-- Register Button -->
+                            <div class="d-grid gap-2 mb-4">
+                                <button type="submit" class="btn btn-success btn-lg fw-600" style="padding: 12px; border-radius: 12px; font-size: 16px; background: linear-gradient(135deg, #4bbb17 0%, #3a9012 100%); border: none;">
+                                    <i class="fas fa-user-plus me-2"></i>Create Account
+                                </button>
+                            </div>
+
+                            <!-- Divider -->
+                            <div style="position: relative; text-align: center; margin: 30px 0;">
+                                <hr>
+                                <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #999; font-size: 14px;">Or</span>
+                            </div>
+
+                            <!-- Login Link -->
+                            <p class="text-center mb-0">
+                                Already have an account? 
+                                <a href="{{ url_for('auth.login') }}" class="fw-bold text-success text-decoration-none" style="font-size: 16px;">
+                                    Login here <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </p>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <!-- <div class="row g-3 mt-5">
+                    <div class="col-6 text-center">
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
+                            <i class="fas fa-rocket text-success mb-2" style="font-size: 28px; display: block;"></i>
+                            <p class="small text-muted mb-0"><strong>Quick Start</strong><br>Ready in seconds</p>
+                        </div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
+                            <i class="fas fa-star text-success mb-2" style="font-size: 28px; display: block;"></i>
+                            <p class="small text-muted mb-0"><strong>Rewards</strong><br>Earn points daily</p>
+                        </div>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .register-hero {
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .hero-feature {
+        text-align: center;
+    }
+
+    .register-section {
+        padding: 40px 0;
+    }
+
+    .form-label {
+        color: #333;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+    }
+
+    .input-group-text {
+        color: #4bbb17;
+    }
+
+    .form-control {
+        border-radius: 12px !important;
+        padding: 12px 15px !important;
+        border: 1px solid #e0e0e0 !important;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #4bbb17 !important;
+        box-shadow: 0 0 0 0.2rem rgba(75, 187, 23, 0.1) !important;
+    }
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ddd;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+
+    .form-check-input:checked {
+        background-color: #4bbb17;
+        border-color: #4bbb17;
+    }
+
+    .form-check-input:focus {
+        border-color: #4bbb17;
+        box-shadow: 0 0 0 0.2rem rgba(75, 187, 23, 0.1);
+    }
+
+    .btn-success {
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(75, 187, 23, 0.3);
+    }
+
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    @media (max-width: 768px) {
+        .register-hero {
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .hero-feature {
+            margin-bottom: 15px;
+        }
+
+        .card-body {
+            padding: 30px !important;
+        }
+
+        .row.g-3 {
+            margin-top: 30px !important;
+        }
+    }
+</style>
+
+{% endblock %}

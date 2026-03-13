@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+
+{% block title %}Discounts Management - Green Bean Admin{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+
+<style>
+    :root {
+        --primary-green: #22a54a;
+        --dark-green: #155724;
+        --accent-green: #1aa179;
+        --text-dark: #1a1a1a;
+        --text-secondary: #495057;
+        --bg-light: #f8f9fa;
+        --border-color: #d1d5db;
+        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .page-header {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .page-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #000000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-title i {
+        color: var(--primary-green);
+    }
+
+    .btn-add {
+        padding: 10px 20px;
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        background: var(--dark-green);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(34, 165, 74, 0.3);
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+        font-size: 0.93rem;
+    }
+
+    .table thead th {
+        background-color: var(--bg-light);
+        border: none;
+        color: #000000;
+        font-weight: 700;
+        padding: 12px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        padding: 12px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--bg-light);
+    }
+
+    .badge-discount {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-percentage {
+        background-color: #ffeaa7;
+        color: #d63031;
+    }
+
+    .badge-fixed {
+        background-color: #74b9ff;
+        color: #0984e3;
+    }
+
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-edit {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .btn-edit:hover {
+        background: #bbdefb;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .btn-delete:hover {
+        background: #ffcdd2;
+        transform: translateY(-2px);
+    }
+
+    .modal-header {
+        background: var(--primary-green);
+        color: white;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #000000;
+        margin-bottom: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary-green);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: var(--dark-green);
+    }
+
+    .alert {
+        margin-bottom: 15px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+</style>
+
+<div class="main-content">
+    <div class="page-header">
+        <div class="page-title">
+            <i class="fas fa-tags"></i>
+            Discount Management
+        </div>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addDiscountModal">
+            <i class="fas fa-plus"></i> Add Discount
+        </button>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <div class="table-card">
+        <table class="table" id="discountTable">
+            <thead>
+                <tr>
+                    <th>Coupon Code</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Min. Purchase</th>
+                    <th>Usage</th>
+                    <th>Expires</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="discountTableBody">
+                <tr><td colspan="9" class="text-center py-4">Loading discounts...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Discount Modal -->
+<div class="modal fade" id="addDiscountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus"></i> Add New Discount</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDiscountForm">
+                    <div class="mb-3">
+                        <label class="form-label">Coupon Code</label>
+                        <input type="text" class="form-control" name="code" placeholder="e.g., SUMMER20" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control" name="description" placeholder="e.g., 20% off summer sale">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Discount Type</label>
+                            <select class="form-select" name="discount_type" required>
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Amount ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Discount Value</label>
+                            <input type="number" class="form-control" name="discount_value" placeholder="e.g., 20" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Minimum Purchase Amount</label>
+                        <input type="number" class="form-control" name="min_purchase" placeholder="0" step="0.01">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Max Usage Count (Global)</label>
+                            <input type="number" class="form-control" name="max_usage" placeholder="Leave empty for unlimited">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Max Usage Per Customer</label>
+                            <input type="number" class="form-control" name="max_usage_per_customer" placeholder="e.g., 1 or 2 (empty = unlimited)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control" name="expiry_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 d-none">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveDiscount()">Save Discount</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Discount Modal -->
+<div class="modal fade" id="editDiscountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Edit Discount</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editDiscountForm">
+                    <input type="hidden" id="editDiscountId" name="id">
+                    <div class="mb-3">
+                        <label class="form-label">Coupon Code</label>
+                        <input type="text" class="form-control" name="code" id="editCode" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control" name="description" id="editDescription">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Discount Type</label>
+                            <select class="form-select" name="discount_type" id="editType" required>
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Amount ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Discount Value</label>
+                            <input type="number" class="form-control" name="discount_value" id="editValue" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Minimum Purchase Amount</label>
+                        <input type="number" class="form-control" name="min_purchase" id="editMinPurchase" step="0.01">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Max Usage Count (Global)</label>
+                            <input type="number" class="form-control" name="max_usage" id="editMaxUsage">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Max Usage Per Customer</label>
+                            <input type="number" class="form-control" name="max_usage_per_customer" id="editMaxUsagePerCustomer">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control" name="expiry_date" id="editExpiry" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status" id="editStatus" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 d-none">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" id="editStatus" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateDiscount()">Update Discount</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal - No longer needed with SweetAlert2 -->
+
+<script type="application/json" id="discountsData">
+{{ discounts | tojson }}
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let discounts = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const data = document.getElementById('discountsData').textContent;
+        discounts = JSON.parse(data);
+        renderTable();
+    });
+
+    function renderTable() {
+        const tbody = document.getElementById('discountTableBody');
+        
+        if (discounts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="empty-state"><i class="fas fa-tags"></i><p>No discounts yet. Click "Add Discount" to create one.</p></div></td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = discounts.map(discount => `
+            <tr>
+                <td><strong>${discount.code}</strong></td>
+                <td>${discount.description || '-'}</td>
+                <td><span class="badge ${discount.discount_type === 'percentage' ? 'bg-warning' : 'bg-info'} text-dark">${discount.discount_type === 'percentage' ? '%' : '$'}</span></td>
+                <td>${discount.discount_value}</td>
+                <td>$${discount.min_purchase || 0}</td>
+                <td>
+                    ${discount.usage_count || 0}/${discount.max_usage || '∞'}
+                    <br>
+                    <small class="text-muted">
+                        Per customer: ${discount.max_usage_per_customer || '∞'}
+                    </small>
+                </td>
+                <td>${discount.expiry_date}</td>
+                <td><span class="badge-discount status-${discount.status}">${discount.status.toUpperCase()}</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-icon btn-edit" onclick="openEditModal(${discount.id})" data-bs-toggle="modal" data-bs-target="#editDiscountModal">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="openDeleteModal(${discount.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function saveDiscount() {
+        const form = document.getElementById('addDiscountForm');
+        const formData = new FormData(form);
+
+        fetch('{{ url_for("discount_module.add_discount") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('✓ Discount added successfully!', 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addDiscountModal'));
+                modal.hide();
+                form.reset();
+                discounts.push(data.data);
+                renderTable();
+            } else {
+                showAlert('✗ ' + (data.message || 'Error adding discount'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('✗ Error adding discount', 'error');
+        });
+    }
+
+    function openEditModal(discountId) {
+        const discount = discounts.find(d => d.id === discountId);
+        if (discount) {
+            document.getElementById('editDiscountId').value = discountId;
+            document.getElementById('editCode').value = discount.code;
+            document.getElementById('editDescription').value = discount.description || '';
+            document.getElementById('editType').value = discount.discount_type;
+            document.getElementById('editValue').value = discount.discount_value;
+            document.getElementById('editMinPurchase').value = discount.min_purchase || 0;
+            document.getElementById('editMaxUsage').value = discount.max_usage || '';
+            document.getElementById('editMaxUsagePerCustomer').value = discount.max_usage_per_customer || '';
+            document.getElementById('editExpiry').value = formatDateForInput(discount.expiry_date);
+            document.getElementById('editStatus').value = discount.status;
+        }
+    }
+
+    function updateDiscount() {
+        const discountId = document.getElementById('editDiscountId').value;
+        const form = document.getElementById('editDiscountForm');
+        const formData = new FormData(form);
+
+        fetch(`{{ url_for("discount_module.edit_discount", discount_id=0) }}`.replace('0', discountId), {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('✓ Discount updated successfully!', 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editDiscountModal'));
+                modal.hide();
+                const index = discounts.findIndex(d => d.id === parseInt(discountId));
+                if (index > -1) {
+                    discounts[index] = data.data;
+                }
+                renderTable();
+            } else {
+                showAlert('✗ ' + (data.message || 'Error updating discount'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('✗ Error updating discount', 'error');
+        });
+    }
+
+    function showAlert(message, type) {
+        Swal.fire({
+            title: type === 'success' ? 'Success!' : 'Error',
+            text: message,
+            icon: type,
+            position: 'top-end',
+            toast: true,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        })
+    }
+
+    function openDeleteModal(discountId) {
+        Swal.fire({
+            title: 'Delete Discount?',
+            text: 'This coupon code will be permanently deleted.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                performDelete(discountId);
+            }
+        });
+    }
+
+    function performDelete(discountId) {
+        fetch(`{{ url_for("discount_module.delete_discount", discount_id=0) }}`.replace('0', discountId), {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message || 'Discount deleted successfully!', 'success');
+                discounts = discounts.filter(d => d.id !== parseInt(discountId));
+                renderTable();
+            } else {
+                showAlert('✗ ' + (data.message || 'Error deleting discount'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('✗ Error deleting discount', 'error');
+        });
+    }
+
+    function confirmDelete() {
+        // This function is no longer used with SweetAlert2
+    }
+
+    function formatDateForInput(date) {
+        const parts = date.split(' ');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthIndex = months.indexOf(parts[0]);
+        const day = parseInt(parts[1], 10);
+        const year = parts[2];
+        return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
+    function showAlert(message, type) {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertId = 'alert-' + Date.now();
+        const alertHTML = `
+            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert" style="margin-top: 10px;">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+        
+        setTimeout(() => {
+            const element = document.getElementById(alertId);
+            if (element) element.remove();
+        }, 4000);
+    }
+</script>
+{% endblock %}

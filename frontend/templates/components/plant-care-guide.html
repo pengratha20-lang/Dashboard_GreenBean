@@ -1,0 +1,81 @@
+<!-- Plant Care Guide Section -->
+<section class="plant-care-section py-5" id="plant-care">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">Plant Care Made Easy</h2>
+      <div class="section-divider"></div>
+      <p class="lead text-muted">Learn how to keep your plants healthy and thriving with our expert tips</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6">
+        <div class="care-card bg-white rounded shadow-sm overflow-hidden h-100">
+          <div class="care-image">
+            <img src="{{ url_for('static', filename='images/indoor/snake-plant.jpg') }}" alt="Watering plants" class="img-fluid" style="height: 200px; width: 100%; object-fit: cover;">
+          </div>
+          <div class="care-content p-4">
+            <h5 class="fw-bold text-success"><i class="fas fa-tint me-2"></i>Watering Guide</h5>
+            <p class="text-muted">Learn the right watering techniques for different plant types. Overwatering is one of the most common mistakes.</p>
+            <div class="care-details" id="watering-details" style="display: none;">
+              <hr class="my-3">
+              <h6 class="fw-bold">Watering Tips:</h6>
+              <ul class="text-muted small">
+                <li>Check soil moisture before watering - stick your finger 1-2 inches deep</li>
+                <li>Water thoroughly until water drains from the bottom</li>
+                <li>Most plants prefer morning watering</li>
+                <li>Use room temperature water</li>
+                <li>Different seasons require different watering frequencies</li>
+              </ul>
+            </div>
+            <button class="btn btn-outline-success btn-sm" onclick="toggleCareDetails('watering-details', this)">Read More</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="care-card bg-white rounded shadow-sm overflow-hidden h-100">
+          <div class="care-image">
+            <img src="{{ url_for('static', filename='images/indoor/monstera.jpg') }}" alt="Plant lighting" class="img-fluid" style="height: 200px; width: 100%; object-fit: cover;">
+          </div>
+          <div class="care-content p-4">
+            <h5 class="fw-bold text-success"><i class="fas fa-sun me-2"></i>Light Requirements</h5>
+            <p class="text-muted">Understand how much light your plants need and how to position them for optimal growth and health.</p>
+            <div class="care-details" id="light-details" style="display: none;">
+              <hr class="my-3">
+              <h6 class="fw-bold">Light Guidelines:</h6>
+              <ul class="text-muted small">
+                <li><strong>Bright Direct:</strong> 6+ hours of direct sunlight (succulents, herbs)</li>
+                <li><strong>Bright Indirect:</strong> Bright but filtered light (most houseplants)</li>
+                <li><strong>Medium Light:</strong> East/west facing windows (pothos, snake plants)</li>
+                <li><strong>Low Light:</strong> North facing windows or artificial light</li>
+                <li>Rotate plants weekly for even growth</li>
+              </ul>
+            </div>
+            <button class="btn btn-outline-success btn-sm" onclick="toggleCareDetails('light-details', this)">Read More</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="care-card bg-white rounded shadow-sm overflow-hidden h-100">
+          <div class="care-image">
+            <img src="{{ url_for('static', filename='images/indoor/peace-lily.jpg') }}" alt="Plant fertilizing" class="img-fluid" style="height: 200px; width: 100%; object-fit: cover;">
+          </div>
+          <div class="care-content p-4">
+            <h5 class="fw-bold text-success"><i class="fas fa-leaf me-2"></i>Fertilizing Tips</h5>
+            <p class="text-muted">Discover the best fertilizing practices to keep your plants nutritionally balanced and thriving.</p>
+            <div class="care-details" id="fertilizing-details" style="display: none;">
+              <hr class="my-3">
+              <h6 class="fw-bold">Fertilizing Schedule:</h6>
+              <ul class="text-muted small">
+                <li><strong>Spring/Summer:</strong> Fertilize every 2-4 weeks (growing season)</li>
+                <li><strong>Fall/Winter:</strong> Reduce to monthly or skip entirely</li>
+                <li>Use diluted liquid fertilizer (half strength)</li>
+                <li>Always water before fertilizing to prevent root burn</li>
+                <li>Look for yellowing leaves as signs of over-fertilization</li>
+              </ul>
+            </div>
+            <button class="btn btn-outline-success btn-sm" onclick="toggleCareDetails('fertilizing-details', this)">Read More</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

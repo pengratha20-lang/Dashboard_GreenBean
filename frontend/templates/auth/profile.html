@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-success mb-4">
+                        <i class="fas fa-user-circle me-2"></i>Account
+                    </h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{{ url_for('auth.profile') }}" class="text-decoration-none text-dark fw-bold">
+                                <i class="fas fa-user me-2 text-success"></i>My Profile
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('wishlist.view_wishlist') }}" class="text-decoration-none text-dark">
+                                <i class="fas fa-heart me-2 text-success"></i>My Wishlist
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('orders.my_orders') }}" class="text-decoration-none text-dark">
+                                <i class="fas fa-box me-2 text-success"></i>My Orders
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <hr>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('auth.logout') }}" class="text-decoration-none text-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-user-edit me-2 text-success"></i>Edit Profile
+                    </h3>
+                    
+                    <form method="POST" action="{{ url_for('auth.update_profile') }}">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ customer.name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ customer.email }}" disabled>
+                                <small class="text-muted">Email cannot be changed</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       value="{{ customer.phone or '' }}" placeholder="+1 (555) 123-4567">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="country" class="form-label">Country</label>
+                                <input type="text" class="form-control" id="country" name="country" 
+                                       value="{{ customer.country or '' }}" placeholder="United States">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" name="city" 
+                                       value="{{ customer.city or '' }}" placeholder="New York">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" 
+                                      placeholder="123 Main Street, Apt 4B">{{ customer.address or '' }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                            <a href="{{ url_for('home.home') }}" class="btn btn-outline-secondary px-4">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-5">
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-box fs-3 text-success mb-3"></i>
+                                <h5>Total Orders</h5>
+                                <p class="fs-4 fw-bold">{{ customer.total_orders or 0 }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-calendar fs-3 text-success mb-3"></i>
+                                <h5>Member Since</h5>
+                                <p class="fs-6">{{ customer.created_at.strftime('%B %d, %Y') if customer.created_at else 'N/A' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-envelope fs-3 text-success mb-3"></i>
+                                <h5>Email</h5>
+                                <p class="fs-6">{{ customer.email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 10px;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    
+    .btn-success {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+        background-color: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .list-unstyled li a {
+        transition: all 0.3s ease;
+        padding: 8px 12px;
+        border-radius: 6px;
+        display: block;
+    }
+    
+    .list-unstyled li a:hover {
+        background-color: #e8f5e9;
+        padding-left: 18px;
+    }
+</style>
+{% endblock %}

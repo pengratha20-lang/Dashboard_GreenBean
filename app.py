@@ -34,18 +34,33 @@ from model.discount import Discount, DiscountProduct
 from model.order import Order, OrderItem
 from model.setting import Setting
 
-from routes.admin.auth import auth_bp
-from routes.admin.dashboard import dashboard_bp
-from routes.admin.product import product_bp
-from routes.admin.order import admin_bp as order_bp
-from routes.admin.customer import admin_bp as customer_bp
-from routes.admin.category import category_bp
-from routes.admin.discount import admin_bp as discount_bp
-from routes.admin.analytics import admin_bp as analytics_bp
-from routes.admin.setting import admin_bp as settings_bp
-from routes.admin.user import user_bp
-from routes.api.product_api import api_product_bp
+# ==================== BACKEND (ADMIN) ROUTES ====================
+from backend.routes.admin.auth import auth_bp
+from backend.routes.admin.dashboard import dashboard_bp
+from backend.routes.admin.product import product_bp
+from backend.routes.admin.order import admin_bp as order_bp
+from backend.routes.admin.customer import admin_bp as customer_bp
+from backend.routes.admin.category import category_bp
+from backend.routes.admin.discount import admin_bp as discount_bp
+from backend.routes.admin.analytics import admin_bp as analytics_bp
+from backend.routes.admin.setting import admin_bp as settings_bp
+from backend.routes.admin.user import user_bp
+from backend.routes.api.product_api import api_product_bp
 
+# ==================== FRONTEND (CUSTOMER) ROUTES ====================
+from frontend.routes.index import home_bp
+from frontend.routes.about import about_bp
+from frontend.routes.contact import contact_bp
+from frontend.routes.service import service_bp
+from frontend.routes.shop import shop_bp
+from frontend.routes.cart import cart_bp
+from frontend.routes.product import product_bp as front_product_bp
+from frontend.routes.checkout import checkout_bp
+from frontend.routes.auth import auth_bp as front_auth_bp
+from frontend.routes.wishlist_routes import wishlist_bp
+from frontend.routes.orders_routes import orders_bp
+
+# ==================== REGISTER BACKEND BLUEPRINTS ====================
 app.register_blueprint(auth_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(product_bp)
@@ -57,6 +72,20 @@ app.register_blueprint(analytics_bp)
 app.register_blueprint(settings_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(api_product_bp)
+
+# ==================== REGISTER FRONTEND BLUEPRINTS ====================
+app.register_blueprint(home_bp)
+app.register_blueprint(about_bp)
+app.register_blueprint(contact_bp)
+app.register_blueprint(service_bp)
+app.register_blueprint(shop_bp)
+app.register_blueprint(cart_bp)
+app.register_blueprint(front_product_bp)
+app.register_blueprint(checkout_bp)
+# Note: front_auth_bp registration - check for route conflicts with backend auth_bp
+# app.register_blueprint(front_auth_bp)  # Comment out if conflicts exist
+app.register_blueprint(wishlist_bp)
+app.register_blueprint(orders_bp)
 
 # Login required decorator
 def login_required(f):
