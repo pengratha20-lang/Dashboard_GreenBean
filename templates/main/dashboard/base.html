@@ -1,4 +1,5 @@
     <title>{% block title %}Green Bean Admin - Smart Dashboard{% endblock %}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,6 +57,77 @@
     
     <!-- Flash Messages Handler -->
     <script>
+        function getCsrfToken() {
+            const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+            return tokenMeta ? tokenMeta.getAttribute('content') : '';
+        }
+
+        function ensureCsrfInput(form) {
+            const token = getCsrfToken();
+            if (!token) return;
+
+            const method = (form.getAttribute('method') || 'GET').toUpperCase();
+            if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return;
+
+            let csrfInput = form.querySelector('input[name="csrf_token"]');
+            if (!csrfInput) {
+                csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                form.appendChild(csrfInput);
+            }
+            csrfInput.value = token;
+        }
+
+        function attachCsrfToForms() {
+            document.querySelectorAll('form').forEach(ensureCsrfInput);
+
+            document.addEventListener('submit', function(event) {
+                const form = event.target;
+                if (form && form.tagName === 'FORM') {
+                    ensureCsrfInput(form);
+                }
+            }, true);
+        }
+
+        function patchFetchWithCsrf() {
+            if (window.__dashboardFetchCsrfPatched) return;
+            window.__dashboardFetchCsrfPatched = true;
+
+            const nativeFetch = window.fetch.bind(window);
+            window.fetch = function(input, init) {
+                const options = init ? { ...init } : {};
+                const requestMethod = (
+                    options.method ||
+                    (input && input.method) ||
+                    'GET'
+                ).toUpperCase();
+
+                if (!['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(requestMethod)) {
+                    const token = getCsrfToken();
+                    const headers = new Headers(options.headers || undefined);
+
+                    if (token && !headers.has('X-CSRFToken') && !headers.has('X-CSRF-Token')) {
+                        headers.set('X-CSRFToken', token);
+                    }
+                    if (!headers.has('X-Requested-With')) {
+                        headers.set('X-Requested-With', 'XMLHttpRequest');
+                    }
+
+                    if (options.body instanceof FormData && token && !options.body.has('csrf_token')) {
+                        options.body.append('csrf_token', token);
+                    }
+
+                    options.headers = headers;
+                    if (!options.credentials) {
+                        options.credentials = 'same-origin';
+                    }
+                }
+
+                return nativeFetch(input, options);
+            };
+        }
+
         function cleanupBlockingLayers() {
             document.body.classList.remove('swal2-shown', 'swal2-height-auto', 'modal-open');
             document.body.style.removeProperty('overflow');
@@ -87,6 +159,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            attachCsrfToForms();
+            patchFetchWithCsrf();
             cleanupBlockingLayers();
 
             // Ensure right-click inspection is not blocked by page-level listeners.
