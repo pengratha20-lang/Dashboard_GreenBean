@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 import os
 from jinja2 import FileSystemLoader, ChoiceLoader
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config.settings import UPLOAD_FOLDER, IMAGES_FOLDER, IMAGE_TYPES, IMAGE_VERSIONS, ALLOWED_EXTENSIONS, MAX_CONTENT_LENGTH
 from core.database import db
 from datetime import timedelta
@@ -16,6 +17,7 @@ load_dotenv()
 
 # Create Flask app with custom template loader
 app = Flask(__name__, static_folder='static')
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 # Configure Jinja to search multiple template directories
 # Root is templates/main to support 'dashboard/...' and 'frontside/...' paths
@@ -26,8 +28,15 @@ template_loaders = [
 app.jinja_loader = ChoiceLoader(template_loaders)
 
 # Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True
+}
 # Use environment variable for secret key, with fallback for development
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-key-change-in-production-MUST-BE-32-CHARS-MIN')
 if len(app.secret_key) < 32:
@@ -42,8 +51,11 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
 # Session configuration with secure defaults
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
+# Render sets RENDER=true for running services
+is_render = os.environ.get('RENDER', 'False').lower() == 'true'
 # Set to True for HTTPS in production
-app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+default_cookie_secure = 'True' if is_render else 'False'
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE', default_cookie_secure).lower() == 'true'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 # Use Strict for maximum security
 app.config['SESSION_COOKIE_SAMESITE'] = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
