@@ -1,0 +1,328 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Stock & Catalog - Green Bean Smart Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .products-toolbar {
+        background: white;
+        padding: 15px 25px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 35px;
+    }
+
+    .premium-search-container {
+        position: relative;
+        width: 100%;
+        max-width: 450px;
+    }
+
+    .premium-search-container i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    .premium-search-input {
+        width: 100%;
+        padding: 12px 15px 12px 45px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+    }
+
+    .premium-search-input:focus {
+        background: white;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(34, 165, 74, 0.1);
+        outline: none;
+    }
+
+    .product-thumbnail-sm {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e2e8f0;
+    }
+
+    .product-thumbnail-sm img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .table-premium {
+        background: white;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        border: 1px solid #f1f5f9;
+        margin-bottom: 2rem;
+    }
+
+    .table-premium table {
+        margin-bottom: 0;
+    }
+
+    .table-premium thead {
+        background-color: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .table-premium th {
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem 1.25rem;
+        border-bottom: none;
+    }
+
+    .table-premium td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table-premium tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .table-premium tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .product-cat-pill {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--primary);
+        background: #f0fdf4;
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .btn-action-sm {
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #64748b;
+        transition: all 0.2s;
+        text-decoration: none !important;
+    }
+
+    .btn-action-sm:hover {
+        background: #f8fafc;
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .btn-delete-sm:hover {
+        background: #fff1f2;
+        color: #ef4444;
+        border-color: #fca5a5;
+    }
+
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .badge-instock { background: #dcfce7; color: #166534; }
+    .badge-low { background: #fef9c3; color: #854d0e; }
+    .badge-out { background: #fee2e2; color: #991b1b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-5 align-items-center">
+    <div class="col">
+        <h1 class="module-title mb-1">Stock & Catalog</h1>
+        <p class="text-muted">Maintain items, monitor stock levels, and update pricing.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('product_module.add_product') }}" class="btn-premium px-4">
+            <i class="fas fa-plus me-2"></i> New Product
+        </a>
+    </div>
+</div>
+
+<div class="products-toolbar">
+    <form method="GET" action="{{ url_for('product_module.products_route') }}" class="d-flex w-100 justify-content-between align-items-center">
+        <div class="premium-search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" name="search" class="premium-search-input" placeholder="Search by name or category..." value="{{ request.args.get('search', '') }}">
+        </div>
+        <div class="d-flex gap-2">
+            <select name="status" class="form-select border-0 rounded-3 px-4" onchange="this.form.submit()" style="background: #f8fafc; font-weight: 600; font-size: 0.95rem; color: #475569;">
+                <option value="">All Statuses</option>
+                <option value="instock" {% if request.args.get('status') == 'instock' %}selected{% endif %}>In Stock</option>
+                <option value="low" {% if request.args.get('status') == 'low' %}selected{% endif %}>Low Stock</option>
+                <option value="out" {% if request.args.get('status') == 'out' %}selected{% endif %}>Out of Stock</option>
+            </select>
+            <button type="button" class="btn btn-light rounded-3 px-3 text-secondary"><i class="fas fa-download"></i></button>
+        </div>
+    </form>
+</div>
+
+<div class="table-premium">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th width="80">Image</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        <div class="product-thumbnail-sm">
+                            {% if product.thumbnail_url %}
+                                <img src="{{ product.thumbnail_url }}?v={{ product.image_version }}"
+                                     alt="{{ product.product_name }}"
+                                     onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22%3E%3Crect width=%2248%22 height=%2248%22 fill=%22%23f1f5f9%22/%3E%3Cpath d=%22M14 32l8-8 5 5 4-4 7 7H14z%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%2218%22 cy=%2218%22 r=%223%22 fill=%22%23cbd5e1%22/%3E%3C/svg%3E';">
+                            {% else %}
+                                <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22%3E%3Crect width=%2248%22 height=%2248%22 fill=%22%23f1f5f9%22/%3E%3Cpath d=%22M14 32l8-8 5 5 4-4 7 7H14z%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%2218%22 cy=%2218%22 r=%223%22 fill=%22%23cbd5e1%22/%3E%3C/svg%3E" alt="Placeholder">
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="fw-bold" style="font-size: 0.95rem;">{{ product.product_name }}</div>
+                    </td>
+                    <td>
+                        <span class="product-cat-pill">{{ product.category_name }}</span>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">${{ "{:,.2f}".format(product.price) }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-muted"><i class="fas fa-box-open me-2 opacity-50"></i>{{ product.stock }}</div>
+                    </td>
+                    <td>
+                        {% if product.stock > 10 %}
+                            <span class="badge-status badge-instock">In Stock</span>
+                        {% elif product.stock > 0 %}
+                            <span class="badge-status badge-low">Low Stock</span>
+                        {% else %}
+                            <span class="badge-status badge-out">Out of Stock</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('product_module.edit_product', product_id=product.id) }}" class="btn-action-sm" title="Edit">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                            <button onclick="confirmDelete('{{ product.id }}')" class="btn-action-sm btn-delete-sm" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <form id="delete-product-form-{{ product.id }}" method="POST" action="{{ url_for('product_module.delete_product', product_id=product.id) }}" class="d-none">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if not products %}
+<div class="text-center py-5">
+    <div class="mb-4 text-muted opacity-25" style="font-size: 5rem;"><i class="fas fa-cube"></i></div>
+    <h3 class="fw-bold">Inventory Empty</h3>
+    <p class="text-muted">Start building your catalog today.</p>
+    <a href="{{ url_for('product_module.add_product') }}" class="btn-premium mt-3">Add First Item</a>
+</div>
+{% endif %}
+
+{% if total_pages > 1 %}
+<div class="d-flex justify-content-center mt-4">
+    <nav class="pagination-nav gap-2 d-flex">
+        {% if page > 1 %}
+        <a href="{{ url_for('product_module.products_route', page=page-1) }}" class="pagination-btn"><i class="fas fa-chevron-left"></i></a>
+        {% endif %}
+
+        {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+        <span class="pagination-btn active">{{ p }}</span>
+        {% else %}
+        <a href="{{ url_for('product_module.products_route', page=p) }}" class="pagination-btn">{{ p }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="{{ url_for('product_module.products_route', page=page+1) }}" class="pagination-btn"><i class="fas fa-chevron-right"></i></a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Remove Product?',
+            text: "This item will be permanently purged from catalog.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Yes, Delete It',
+            borderRadius: '16px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-product-form-${id}`).submit();
+            }
+        });
+    }
+
+    // URL feedback handler
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message');
+    const type = (urlParams.get('type') || 'info').toLowerCase();
+    const validIcons = ['success', 'error', 'warning', 'info', 'question'];
+    if (message) {
+        Swal.fire({
+            title: type === 'success' ? 'Operation Success' : 'Error Occurred',
+            text: message,
+            icon: validIcons.includes(type) ? type : 'info',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 from flask import render_template, request, jsonify, Blueprint
-from database import db
-from auth_helper import login_required
+from core.database import db
+from core.auth_helper import login_required
 from model.discount import Discount
 from model.order import Order
 from model.customer import Customer
@@ -8,16 +8,16 @@ from datetime import datetime
 from services.main.dashboard.coupons import CouponError, validate_and_calculate_coupon
 
 # Create Blueprint
-admin_bp = Blueprint('discount_module', __name__, url_prefix='')
+discount_bp = Blueprint('discount_module', __name__, url_prefix='')
 
-@admin_bp.route('/discounts')
+@discount_bp.route('/discounts')
 @login_required
 def discounts_route():
     discounts = Discount.query.all()
     discounts_list = [d.to_dict() for d in discounts]
     return render_template('dashboard/discounts.html', discounts=discounts_list, module_name='Discount Management', module_icon='fa-tag')
 
-@admin_bp.route('/discounts/add', methods=['POST'])
+@discount_bp.route('/discounts/add', methods=['POST'])
 @login_required
 def add_discount():
     try:
@@ -42,7 +42,7 @@ def add_discount():
             min_purchase=float(data.get('min_purchase', 0)),
             max_usage=int(data.get('max_usage')) if data.get('max_usage') else None,
             max_usage_per_customer=max_usage_per_customer,
-            expiry_date=datetime.strptime(data.get('expiry_date'), '%Y-%m-%d'),
+            expiry_date=datetime.strptime(data.get('expiry_date'), '%Y-%m-%d') if data.get('expiry_date') else None,
             status=data.get('status', 'active')
         )
         
@@ -54,7 +54,7 @@ def add_discount():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 400
 
-@admin_bp.route('/discounts/<int:discount_id>/edit', methods=['POST'])
+@discount_bp.route('/discounts/<int:discount_id>/edit', methods=['POST'])
 @login_required
 def edit_discount(discount_id):
     try:
@@ -88,7 +88,8 @@ def edit_discount(discount_id):
         discount.min_purchase = float(data.get('min_purchase', discount.min_purchase))
         discount.max_usage = int(data.get('max_usage')) if data.get('max_usage') else None
         discount.max_usage_per_customer = max_usage_per_customer
-        discount.expiry_date = datetime.strptime(data.get('expiry_date'), '%Y-%m-%d')
+        if data.get('expiry_date'):
+            discount.expiry_date = datetime.strptime(data.get('expiry_date'), '%Y-%m-%d')
         discount.status = data.get('status', discount.status)
         
         db.session.commit()
@@ -98,7 +99,7 @@ def edit_discount(discount_id):
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 400
 
-@admin_bp.route('/discounts/<int:discount_id>/delete', methods=['POST', 'DELETE'])
+@discount_bp.route('/discounts/<int:discount_id>/delete', methods=['POST', 'DELETE'])
 @login_required
 def delete_discount(discount_id):
     try:
@@ -115,11 +116,10 @@ def delete_discount(discount_id):
         return jsonify({'success': False, 'message': str(e)}), 400
 
 
-@admin_bp.route('/api/apply-coupon', methods=['POST'])
+@discount_bp.route('/api/apply-coupon', methods=['POST'])
 def apply_coupon():
     """
-    Public API for the front website to validate and preview a coupon
-    (Option B – using Order history to enforce per-customer limits).
+    Public API for validation and previewing a coupon.
     """
     try:
         data = request.get_json(silent=True) or request.form

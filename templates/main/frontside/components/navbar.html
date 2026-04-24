@@ -48,19 +48,19 @@
         
         <!-- User Account -->
         <div class="dropdown">
-          <a href="#" class="text-decoration-none text-dark" data-bs-toggle="dropdown">
+          <button id="userAccountDropdown" class="btn btn-link text-decoration-none text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
             <i class="fas fa-user-circle fs-4"></i>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-            {% if session.get('user_id') %}
-              <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user me-2"></i>My Account</a></li>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end border-0 shadow" aria-labelledby="userAccountDropdown">
+            {% if session.get('customer_id') %}
+              <li><a class="dropdown-item" href="{{ url_for('customer_auth.profile') }}"><i class="fas fa-user me-2"></i>My Account</a></li>
               <li><a class="dropdown-item" href="{{ url_for('wishlist.view_wishlist') }}"><i class="fas fa-heart me-2"></i>Wishlist</a></li>
               <li><a class="dropdown-item" href="{{ url_for('orders.my_orders') }}"><i class="fas fa-box me-2"></i>Orders</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('customer_auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
             {% else %}
-              <li><a class="dropdown-item" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
-              <li><a class="dropdown-item" href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus me-2"></i>Register</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('customer_auth.login') }}"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('customer_auth.register') }}"><i class="fas fa-user-plus me-2"></i>Register</a></li>
             {% endif %}
           </ul>
         </div>

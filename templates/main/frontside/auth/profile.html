@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "frontside/base.html" %}
 
 {% block content %}
 <div class="container mt-5 pt-5">
@@ -8,29 +8,29 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title text-success mb-4">
-                        <i class="fas fa-user-circle me-2"></i>Account
+                        <i class="fas fa-user-circle me-2 fs-4"></i>Account
                     </h5>
                     <ul class="list-unstyled">
                         <li class="mb-2">
-                            <a href="{{ url_for('auth.profile') }}" class="text-decoration-none text-dark fw-bold">
-                                <i class="fas fa-user me-2 text-success"></i>My Profile
+                            <a href="{{ url_for('customer_auth.profile') }}" class="text-decoration-none text-dark fw-bold">
+                                <i class="fas fa-user me-2 text-success fs-4"></i>My Profile
                             </a>
                         </li>
                         <li class="mb-2">
                             <a href="{{ url_for('wishlist.view_wishlist') }}" class="text-decoration-none text-dark">
-                                <i class="fas fa-heart me-2 text-success"></i>My Wishlist
+                                <i class="fas fa-heart me-2 text-success fs-4"></i>My Wishlist
                             </a>
                         </li>
                         <li class="mb-2">
                             <a href="{{ url_for('orders.my_orders') }}" class="text-decoration-none text-dark">
-                                <i class="fas fa-box me-2 text-success"></i>My Orders
+                                <i class="fas fa-box me-2 text-success fs-4"></i>My Orders
                             </a>
                         </li>
                         <li class="mb-2">
                             <hr>
                         </li>
                         <li>
-                            <a href="{{ url_for('auth.logout') }}" class="text-decoration-none text-danger">
+                            <a href="{{ url_for('customer_auth.logout') }}" class="text-decoration-none text-danger">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
                             </a>
                         </li>
@@ -44,15 +44,16 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-5">
                     <h3 class="card-title mb-4">
-                        <i class="fas fa-user-edit me-2 text-success"></i>Edit Profile
+                        <i class="fas fa-user-edit me-2 text-success fs-4"></i>Edit Profile
                     </h3>
                     
-                    <form method="POST" action="{{ url_for('auth.update_profile') }}">
+                    <form id="profileForm" method="POST" action="{{ url_for('customer_auth.update_profile') }}">
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="name" class="form-label">Full Name</label>
                                 <input type="text" class="form-control" id="name" name="name" 
                                        value="{{ customer.name }}" required>
+                                <small class="text-muted d-block mt-1">💡 2-100 characters required</small>
                             </div>
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email Address</label>
@@ -67,11 +68,13 @@
                                 <label for="phone" class="form-label">Phone Number</label>
                                 <input type="tel" class="form-control" id="phone" name="phone" 
                                        value="{{ customer.phone or '' }}" placeholder="+1 (555) 123-4567">
+                                <small class="text-muted d-block mt-1">💡 Optional</small>
                             </div>
                             <div class="col-md-6">
                                 <label for="country" class="form-label">Country</label>
                                 <input type="text" class="form-control" id="country" name="country" 
                                        value="{{ customer.country or '' }}" placeholder="United States">
+                                <small class="text-muted d-block mt-1">💡 Optional</small>
                             </div>
                         </div>
                         
@@ -80,6 +83,7 @@
                                 <label for="city" class="form-label">City</label>
                                 <input type="text" class="form-control" id="city" name="city" 
                                        value="{{ customer.city or '' }}" placeholder="New York">
+                                <small class="text-muted d-block mt-1">💡 Optional</small>
                             </div>
                         </div>
                         
@@ -87,6 +91,7 @@
                             <label for="address" class="form-label">Address</label>
                             <textarea class="form-control" id="address" name="address" rows="3" 
                                       placeholder="123 Main Street, Apt 4B">{{ customer.address or '' }}</textarea>
+                            <small class="text-muted d-block mt-1">💡 Optional</small>
                         </div>
                         
                         <div class="d-flex gap-2">
@@ -169,4 +174,70 @@
         padding-left: 18px;
     }
 </style>
+
+<script>
+    // Handle profile form submission with fetch API
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        console.log('Submitting profile update...');
+        
+        try {
+            const response = await fetch('{{ url_for("customer_auth.update_profile") }}', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json'  // Tell server to return JSON, not error page
+                }
+            });
+            
+            const data = await response.json();
+            console.log('Response status:', response.status);
+            console.log('Response data:', data);
+            
+            if (response.status >= 400) {
+                // Error response
+                console.log('Error detected');
+                Swal.fire({
+                    title: 'Update Failed ❌',
+                    text: data.message || 'Unable to update profile. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#4bbb17',
+                    allowOutsideClick: false
+                });
+            } else {
+                // Success
+                console.log('Profile updated successfully!');
+                Swal.fire({
+                    title: 'Profile Updated! ✅',
+                    text: data.message,
+                    icon: 'success',
+                    confirmButtonText: 'Great!',
+                    confirmButtonColor: '#4bbb17',
+                    allowOutsideClick: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    // Update customer name in header if exists
+                    if (data.customer_name) {
+                        const nameElements = document.querySelectorAll('[data-customer-name]');
+                        nameElements.forEach(el => el.textContent = data.customer_name);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Network Error ❌',
+                text: 'Failed to connect to server. Please check your connection.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4bbb17'
+            });
+        }
+    });
+</script>
 {% endblock %}

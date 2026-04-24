@@ -1,9 +1,19 @@
 import requests
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 def send_telegram_alert(message):
     try:
-        bot_token = "7980568529:AAE8nIaaMhPStyv6aV-rFU4KTVs9P9Jn8k0"
-        chat_id = "1081886446"
+        bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+        
+        # Skip if credentials not configured
+        if not bot_token or not chat_id:
+            print("⚠️  Telegram credentials not configured. Skipping notification.")
+            return False
         
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         payload = {

@@ -1,6 +1,24 @@
 // Green Bean - Enhanced Index Page JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     
+    // ============ Dropdown Link Navigation ============
+    // Ensure dropdown closes when clicking dropdown items and allow navigation
+    const dropdownItems = document.querySelectorAll('.dropdown-menu .dropdown-item');
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Allow the link to navigate normally (don't prevent default)
+            // Close all open dropdowns
+            const dropdowns = document.querySelectorAll('.dropdown-menu');
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('show');
+            });
+            const toggles = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+            toggles.forEach(toggle => {
+                toggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+    });
+    
     // ============ Navbar Scroll Effect ============
     const navbar = document.getElementById('main-navbar');
     
@@ -28,6 +46,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // ============ Search Functionality ============
+    function handleSearch(event) {
+        event.preventDefault();
+        const searchInput = document.querySelector('.search-container input');
+        const searchTerm = searchInput ? searchInput.value.trim() : '';
+        if (searchTerm) {
+            // Redirect to shop page with search parameter
+            window.location.href = `/shop?search=${encodeURIComponent(searchTerm)}`;
+        }
+    }
+    
+    // Expose globally for inline handler
+    window.handleSearch = handleSearch;
+    
     const searchInput = document.querySelector('.search-container input');
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
@@ -36,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const searchTerm = this.value.trim();
                 if (searchTerm) {
                     // Redirect to product page with search parameter
-                    window.location.href = `product.html?search=${encodeURIComponent(searchTerm)}`;
+                    window.location.href = `/products?search=${encodeURIComponent(searchTerm)}`;
                 }
             }
         });
@@ -46,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
             searchButton.addEventListener('click', function() {
                 const searchTerm = searchInput.value.trim();
                 if (searchTerm) {
-                    window.location.href = `product.html?search=${encodeURIComponent(searchTerm)}`;
+                    window.location.href = `/products?search=${encodeURIComponent(searchTerm)}`;
                 }
             });
         }
@@ -208,8 +239,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Also listen for custom cart update events
     window.addEventListener('cartUpdated', updateCartBadge);
     
-    // Periodically check for cart updates (fallback)
-    setInterval(updateCartBadge, 1000);
+    // Periodically check for cart updates (fallback) - reduced from 1s to 5s for performance
+    setInterval(updateCartBadge, 5000);
     
     // Add a debug function to clear cart (for testing)
     window.clearCartDebug = function() {
@@ -251,11 +282,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const heroCarousel = document.getElementById('heroCarousel');
     if (heroCarousel) {
         heroCarousel.addEventListener('mouseenter', function() {
-            bootstrap.Carousel.getInstance(this).pause();
+            const carousel = bootstrap.Carousel.getInstance(this);
+            if (carousel) {
+                carousel.pause();
+            }
         });
         
         heroCarousel.addEventListener('mouseleave', function() {
-            bootstrap.Carousel.getInstance(this).cycle();
+            const carousel = bootstrap.Carousel.getInstance(this);
+            if (carousel) {
+                carousel.cycle();
+            }
         });
     }
     
@@ -284,15 +321,13 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', function() {
             navigator.serviceWorker.register('/sw.js')
                 .then(function(registration) {
-                    console.log('SW registered: ', registration);
+                    // Service Worker registered successfully
                 })
                 .catch(function(registrationError) {
-                    console.log('SW registration failed: ', registrationError);
+                    // Service Worker registration failed
                 });
         });
     }
-    
-    console.log('Green Bean - Index page initialized successfully!');
 });
 
 // ============ Utility Functions ============

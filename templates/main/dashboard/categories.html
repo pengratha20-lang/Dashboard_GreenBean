@@ -1,0 +1,241 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Category Management - Green Bean Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+        gap: 16px;
+    }
+
+    .search-wrapper-premium {
+        background: white;
+        padding: 8px 16px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 320px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .search-wrapper-premium input {
+        border: none;
+        outline: none;
+        width: 100%;
+        font-size: 0.95rem;
+        background: transparent;
+    }
+
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+
+    .category-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 28px 20px 20px;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #f1f5f9;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .category-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: var(--grad-primary);
+    }
+
+    .category-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .category-icon {
+        width: 60px;
+        height: 60px;
+        background: #f0fdf4;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: var(--primary-green);
+        margin: 0 auto 16px;
+        box-shadow: 0 4px 12px rgba(34, 165, 74, 0.15);
+    }
+
+    .category-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 6px;
+    }
+
+    .category-description {
+        color: #64748b;
+        font-size: 0.88rem;
+        line-height: 1.55;
+        min-height: 44px;
+        margin-bottom: 14px;
+    }
+
+    .category-count {
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+
+    .category-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .btn-action {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+
+    .btn-action-edit {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .btn-action-edit:hover {
+        background: #22a54a;
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .btn-action-delete {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .btn-action-delete:hover {
+        background: #dc2626;
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #94a3b8;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.4;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header-bar">
+    <form method="GET" action="{{ url_for('category_module.categories_route') }}" class="mb-0">
+        <div class="search-wrapper-premium">
+            <i class="fas fa-search text-muted"></i>
+            <input type="text" name="search" placeholder="Search categories or descriptions..." value="{{ search_query or '' }}">
+        </div>
+    </form>
+    <a href="{{ url_for('category_module.add_category_route') }}" class="btn-premium">
+        <i class="fas fa-plus"></i> Add Category
+    </a>
+</div>
+
+{% if categories %}
+<div class="categories-grid">
+    {% for category in categories %}
+    <div class="category-card">
+        <div class="category-icon">
+            <i class="fas {{ category.icon }}" style="color: #22a54a !important;"></i>
+        </div>
+        <div class="category-name">{{ category.category_name }}</div>
+        <div class="category-description">{{ category.description or 'No description added yet.' }}</div>
+        <div class="category-count">{{ category.total_products }} products</div>
+        <div class="category-actions">
+            <a href="{{ url_for('category_module.edit_category_route', category_id=category.id) }}"
+                class="btn-action btn-action-edit" title="Edit">
+                <i class="fas fa-pen"></i>
+            </a>
+            <button class="btn-action btn-action-delete" title="Delete"
+                onclick="confirmDelete('{{ category.id }}');">
+                <i class="fas fa-trash"></i>
+            </button>
+            <form id="delete-category-form-{{ category.id }}" method="POST" action="{{ url_for('category_module.delete_category_route', category_id=category.id) }}" class="d-none"></form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <i class="fas fa-barcode"></i>
+    <h5>No categories found</h5>
+    <p class="mt-2">Add your first category to get started.</p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Delete Category?',
+            text: 'This category will be permanently removed.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Delete Category'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-category-form-${id}`).submit();
+            }
+        });
+    }
+
+    window.addEventListener('load', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('message');
+        const type = urlParams.get('type');
+
+        if (message && typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: type === 'success' ? 'Success!' : 'Error!',
+                text: message,
+                icon: type === 'success' ? 'success' : 'error',
+                confirmButtonColor: '#22a54a',
+                confirmButtonText: 'OK'
+            });
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+</script>
+{% endblock %}

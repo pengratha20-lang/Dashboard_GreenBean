@@ -1,0 +1,605 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Analytics Insights - Green Bean Smart Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-control-bar {
+        background: white;
+        padding: 15px 25px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 30px;
+        border: 1px solid #f1f5f9;
+    }
+
+    .analytics-summary {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+    }
+
+    .analytics-summary h4 {
+        white-space: nowrap;
+    }
+
+    .period-selector {
+        background: #f1f5f9;
+        padding: 6px;
+        border-radius: 12px;
+        display: flex;
+        gap: 5px;
+    }
+
+    .analytics-filters {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: nowrap;
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+
+    .date-range-box {
+        display: flex;
+        align-items: end;
+        gap: 10px;
+        flex-wrap: nowrap;
+    }
+
+    .date-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .date-input-group label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .date-input-group input {
+        border: 1px solid #dbe3ed;
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 0.9rem;
+        color: #1e293b;
+        background: #fff;
+        width: 165px;
+    }
+
+    .date-input-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(34, 165, 74, 0.12);
+    }
+
+    .btn-filter-action {
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: all 0.2s;
+    }
+
+    .btn-apply-range {
+        background: var(--grad-primary);
+        color: white;
+    }
+
+    .btn-reset-range {
+        background: #eef2f7;
+        color: #475569;
+    }
+
+    .btn-period {
+        padding: 8px 20px;
+        border-radius: 9px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border: none;
+        background: transparent;
+        color: #64748b;
+        transition: all 0.2s;
+    }
+
+    .btn-period.active {
+        background: white;
+        color: var(--dark-green);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card-premium {
+        background: white;
+        padding: 25px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f1f5f9;
+        transition: transform 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card-premium:hover { transform: translateY(-5px); }
+
+    .stat-card-premium::after {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 80px; height: 80px;
+        background: var(--grad-primary);
+        opacity: 0.05;
+        border-radius: 0 0 0 100%;
+    }
+
+    .stat-icon-box {
+        width: 45px; height: 45px;
+        background: #f0fdf4;
+        color: var(--primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 15px;
+    }
+
+    .stat-label-premium {
+        color: #64748b;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-value-premium {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin: 5px 0;
+    }
+
+    .stat-trend {
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .trend-up { color: #10b981; }
+    .trend-down { color: #ef4444; }
+
+    .chart-box-premium {
+        background: white;
+        padding: 30px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f1f5f9;
+        height: 100%;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 25px;
+    }
+
+    .chart-title-text h5 {
+        margin: 0;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .chart-title-text p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .chart-meta {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .selected-range-note {
+        margin-bottom: 22px;
+        color: #64748b;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    @media (max-width: 992px) {
+        .analytics-control-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 18px;
+        }
+
+        .analytics-summary,
+        .analytics-filters,
+        .date-range-box {
+            white-space: normal;
+            flex-wrap: wrap;
+        }
+
+        .analytics-filters {
+            margin-left: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-control-bar">
+    <div class="analytics-summary">
+        <h4 class="mb-0 fw-800">Operational Insights</h4>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">Real-time</span>
+        <span class="chart-meta" id="lastUpdatedText">Updated {{ analytics.last_updated if analytics else '' }}</span>
+    </div>
+    <div class="analytics-filters">
+        <div class="period-selector">
+            <button class="btn-period active" data-period="week">Weekly</button>
+            <button class="btn-period" data-period="month">Monthly</button>
+            <button class="btn-period" data-period="year">Yearly</button>
+        </div>
+        <div class="date-range-box">
+            <div class="date-input-group">
+                <label for="analyticsStartDate">From</label>
+                <input type="date" id="analyticsStartDate" value="{{ analytics.selected_range.start_date if analytics and analytics.selected_range else '' }}">
+            </div>
+            <div class="date-input-group">
+                <label for="analyticsEndDate">To</label>
+                <input type="date" id="analyticsEndDate" value="{{ analytics.selected_range.end_date if analytics and analytics.selected_range else '' }}">
+            </div>
+            <button type="button" class="btn-filter-action btn-apply-range" id="applyDateRangeBtn">Apply</button>
+            <button type="button" class="btn-filter-action btn-reset-range" id="resetDateRangeBtn">Reset</button>
+        </div>
+    </div>
+</div>
+
+<div class="selected-range-note" id="selectedRangeNote"></div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card-premium">
+            <div class="stat-icon-box"><i class="fas fa-wallet"></i></div>
+            <div class="stat-label-premium">Net Revenue</div>
+            <div class="stat-value-premium" id="stat-revenue">{{ analytics.stats.revenue if analytics and analytics.stats else '$0.00' }}</div>
+            <div class="stat-trend" id="trend-revenue"></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-premium">
+            <div class="stat-icon-box"><i class="fas fa-shopping-bag"></i></div>
+            <div class="stat-label-premium">Completed Orders</div>
+            <div class="stat-value-premium" id="stat-orders">{{ analytics.stats.orders if analytics and analytics.stats else '0' }}</div>
+            <div class="stat-trend" id="trend-orders"></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-premium">
+            <div class="stat-icon-box"><i class="fas fa-users"></i></div>
+            <div class="stat-label-premium">New Customers</div>
+            <div class="stat-value-premium" id="stat-customers">{{ analytics.stats.customers if analytics and analytics.stats else '0' }}</div>
+            <div class="stat-trend" id="trend-customers"></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-premium">
+            <div class="stat-icon-box"><i class="fas fa-receipt"></i></div>
+            <div class="stat-label-premium">Avg. Order Value</div>
+            <div class="stat-value-premium" id="stat-avg-order">{{ analytics.stats.avg_order if analytics and analytics.stats else '$0.00' }}</div>
+            <div class="stat-trend" id="trend-avg-order"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-8">
+        <div class="chart-box-premium">
+            <div class="chart-header">
+                <div class="chart-title-text">
+                    <h5>Revenue Trajectory</h5>
+                    <p>Financial growth over selected timeframe</p>
+                </div>
+                <button class="btn btn-light btn-sm rounded-circle"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+            <div style="height: 350px;">
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="chart-box-premium">
+            <div class="chart-header">
+                <div class="chart-title-text">
+                    <h5>Category Mix</h5>
+                    <p>Distribution by sales value</p>
+                </div>
+            </div>
+            <div style="height: 350px;">
+                <canvas id="categoryMixChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-6">
+        <div class="chart-box-premium">
+            <div class="chart-header">
+                <div class="chart-title-text">
+                    <h5>Performance Leaders</h5>
+                    <p>Top selling products by quantity</p>
+                </div>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="topProductsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="chart-box-premium">
+            <div class="chart-header">
+                <div class="chart-title-text">
+                    <h5>Order Status Mix</h5>
+                    <p>Current period order outcomes</p>
+                </div>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="orderStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-12">
+        <div class="chart-box-premium">
+            <div class="chart-header">
+                <div class="chart-title-text">
+                    <h5>Payment Method Breakdown</h5>
+                    <p>How customers paid during the selected period</p>
+                </div>
+            </div>
+            <div style="height: 280px;">
+                <canvas id="paymentMethodChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let charts = {};
+    const greenPalette = {
+        primary: '#22a54a',
+        secondary: '#15803d',
+        accent: '#86efac',
+        bg: 'rgba(34, 165, 74, 0.1)',
+        border: 'rgba(34, 165, 74, 0.3)'
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateUI({{ analytics.stats | tojson if analytics and analytics.stats else '{}' }});
+        updateSelectedRange({{ analytics.selected_range | tojson if analytics and analytics.selected_range else '{}' }}, '{{ analytics.period if analytics else "week" }}');
+        loadAnalytics('week');
+        
+        document.querySelectorAll('.btn-period').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                resetDateInputs();
+                loadAnalytics(this.dataset.period);
+            });
+        });
+
+        document.getElementById('applyDateRangeBtn').addEventListener('click', function() {
+            const startDate = document.getElementById('analyticsStartDate').value;
+            const endDate = document.getElementById('analyticsEndDate').value;
+            if (!startDate || !endDate) {
+                showAlert('error', 'Please select both start and end dates.');
+                return;
+            }
+            document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+            loadAnalytics('custom', startDate, endDate);
+        });
+
+        document.getElementById('resetDateRangeBtn').addEventListener('click', function() {
+            resetDateInputs();
+            const defaultBtn = document.querySelector('.btn-period[data-period="week"]');
+            document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+            defaultBtn.classList.add('active');
+            loadAnalytics('week');
+        });
+    });
+
+    function resetDateInputs() {
+        document.getElementById('analyticsStartDate').value = '';
+        document.getElementById('analyticsEndDate').value = '';
+    }
+
+    function updateSelectedRange(range, period) {
+        const note = document.getElementById('selectedRangeNote');
+        if (!range || !range.start_date || !range.end_date) {
+            note.textContent = '';
+            return;
+        }
+
+        const sameDay = range.start_date === range.end_date;
+        const rangeText = sameDay ? range.start_date : `${range.start_date} to ${range.end_date}`;
+        const prefix = period === 'custom' ? 'Custom range' : `Current ${period}`;
+        note.textContent = `${prefix}: ${rangeText}`;
+    }
+
+    function loadAnalytics(period, startDate = null, endDate = null) {
+        const params = new URLSearchParams();
+        params.set('period', period === 'custom' ? 'week' : period);
+        if (startDate && endDate) {
+            params.set('start_date', startDate);
+            params.set('end_date', endDate);
+        }
+
+        fetch(`{{ url_for("analytics_module.get_analytics_api") }}?${params.toString()}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success === false) {
+                    showAlert('error', data.message || 'Unable to load analytics for that date range.');
+                    return;
+                }
+                updateUI(data.stats);
+                document.getElementById('lastUpdatedText').textContent = `Updated ${data.last_updated}`;
+                updateSelectedRange(data.selected_range, data.period);
+                renderCharts(data);
+            });
+    }
+
+    function updateUI(stats) {
+        if (!stats) return;
+        document.getElementById('stat-revenue').textContent = stats.revenue;
+        document.getElementById('stat-orders').textContent = stats.orders;
+        document.getElementById('stat-customers').textContent = stats.customers || '0';
+        document.getElementById('stat-avg-order').textContent = stats.avg_order;
+
+        setTrend('trend-revenue', stats.revenue_change, `${stats.revenue_change}% vs previous period`);
+        setTrend('trend-orders', stats.orders_change, `${stats.orders_change}% vs previous period`);
+        setTrend('trend-customers', stats.customers_change, `${stats.customers_change}% vs previous period`);
+        setTrend('trend-avg-order', stats.avg_order_change, `${stats.avg_order_change}% vs previous period`);
+    }
+
+    function setTrend(elementId, change, text) {
+        const el = document.getElementById(elementId);
+        const value = Number(change || 0);
+        const icon = value > 0 ? 'fa-arrow-trend-up' : value < 0 ? 'fa-arrow-trend-down' : 'fa-equals';
+        const klass = value > 0 ? 'trend-up' : value < 0 ? 'trend-down' : 'trend-neutral';
+        const prefix = value > 0 ? '+' : '';
+        el.className = `stat-trend ${klass}`;
+        el.innerHTML = `<i class="fas ${icon}"></i>${prefix}${text}`;
+    }
+
+    function chartDataset(labels, values, emptyLabel = 'No Data') {
+        const hasData = labels && labels.length && values && values.some(v => Number(v) > 0);
+        return hasData ? { labels, values } : { labels: [emptyLabel], values: [0] };
+    }
+
+    function renderCharts(payload) {
+        const trendData = payload.chart_data || {};
+        const categoryData = chartDataset(payload.categories?.labels, payload.categories?.data, 'No Category Sales');
+        const productData = chartDataset(payload.top_products?.labels, payload.top_products?.data, 'No Products');
+        const statusData = chartDataset(payload.order_statuses?.labels, payload.order_statuses?.data, 'No Orders');
+        const paymentData = chartDataset(payload.payment_methods?.labels, payload.payment_methods?.data, 'No Orders');
+
+        // Clear old charts
+        Object.values(charts).forEach(c => c && c.destroy());
+
+        // Trend Line
+        charts.trend = new Chart(document.getElementById('revenueTrendChart'), {
+            type: 'line',
+            data: {
+                labels: trendData.labels || ['No Data'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: trendData.revenue || [0],
+                    borderColor: greenPalette.primary,
+                    backgroundColor: greenPalette.bg,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { borderDash: [5, 5] }, ticks: { callback: v => '$' + v } }
+                }
+            }
+        });
+
+        // Category Doughnut
+        charts.category = new Chart(document.getElementById('categoryMixChart'), {
+            type: 'doughnut',
+            data: {
+                labels: categoryData.labels,
+                datasets: [{
+                    data: categoryData.values,
+                    backgroundColor: payload.categories?.colors || [greenPalette.primary, greenPalette.secondary, greenPalette.accent, '#f1f5f9']
+                }]
+            },
+            options: { cutout: '75%', maintainAspectRatio: false }
+        });
+
+        // Top Products Bar
+        charts.products = new Chart(document.getElementById('topProductsChart'), {
+            type: 'bar',
+            data: {
+                labels: productData.labels,
+                datasets: [{
+                    data: productData.values,
+                    backgroundColor: greenPalette.primary,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { grid: { display: false } }, y: { grid: { display: false } } }
+            }
+        });
+
+        charts.status = new Chart(document.getElementById('orderStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusData.labels,
+                datasets: [{
+                    data: statusData.values,
+                    backgroundColor: payload.order_statuses?.colors || ['#f59e0b', '#22a54a', '#ef4444', '#0ea5e9']
+                }]
+            },
+            options: { maintainAspectRatio: false }
+        });
+
+        charts.payment = new Chart(document.getElementById('paymentMethodChart'), {
+            type: 'bar',
+            data: {
+                labels: paymentData.labels,
+                datasets: [{
+                    label: 'Orders',
+                    data: paymentData.values,
+                    backgroundColor: payload.payment_methods?.colors || [greenPalette.primary, '#0ea5e9'],
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

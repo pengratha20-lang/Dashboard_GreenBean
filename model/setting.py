@@ -1,5 +1,5 @@
 from sqlalchemy import func
-from database import db
+from core.database import db
 
 class Setting(db.Model):
     __tablename__ = 'setting'
@@ -17,6 +17,8 @@ class Setting(db.Model):
     logo_url = db.Column(db.String(255), nullable=True)
     tax_rate = db.Column(db.Float, default=0)
     shipping_cost = db.Column(db.Float, default=0)
+    exchange_rate_usd_to_khr = db.Column(db.Float, default=4100)  # 1 USD = 4,100 KHR
+    default_currency = db.Column(db.String(3), default='USD')  # USD or KHR
     
     updated_at = db.Column(db.DateTime, onupdate=func.now(), server_default=func.now())
 
@@ -35,4 +37,6 @@ class Setting(db.Model):
             'logo_url': self.logo_url,
             'tax_rate': self.tax_rate,
             'shipping_cost': self.shipping_cost,
+            'exchange_rate_usd_to_khr': self.exchange_rate_usd_to_khr,
+            'default_currency': self.default_currency,
         }

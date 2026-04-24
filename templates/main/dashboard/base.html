@@ -1,0 +1,152 @@
+    <title>{% block title %}Green Bean Admin - Smart Dashboard{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='main/dashboard/css/admin-dashboard.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column;">
+    <div class="dashboard-container" style="flex: 1 0 auto; display: flex; min-height: 100vh;">
+        <!-- SIDEBAR -->
+        {% include "dashboard/components/sidebar.html" %}
+        <!-- MAIN CONTENT -->
+        <main class="main-content" style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 100vh;">
+            <!-- TOP BAR -->
+            {% include "dashboard/components/topbar.html" %}
+            <!-- PAGE CONTENT -->
+            <div class="content-area" style="flex: 1 1 auto;">
+                {% block content %}{% endblock %}
+            </div>
+            <!-- FOOTER -->
+            {% include "dashboard/components/footer.html" %}
+        </main>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- Chart Utilities -->
+    <script src="{{ url_for('static', filename='main/dashboard/js/charts-utils.js') }}"></script>
+    
+    <!-- Common JS Functions -->
+    <script src="{{ url_for('static', filename='main/dashboard/js/common.js') }}"></script>
+    
+    <!-- Dashboard JS -->
+    <script src="{{ url_for('static', filename='main/dashboard/js/dashboard.js') }}"></script>
+    
+    <!-- Flash Messages Handler -->
+    <script>
+        function cleanupBlockingLayers() {
+            document.body.classList.remove('swal2-shown', 'swal2-height-auto', 'modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+
+            document.querySelectorAll('.swal2-container, .modal-backdrop, .loading-overlay').forEach(el => el.remove());
+
+            // Remove any unexpected full-screen fixed overlay that can block all clicks.
+            Array.from(document.body.children).forEach(el => {
+                if (!el || !el.classList) return;
+                if (el.matches('.dashboard-container, .sidebar, main, script, style')) return;
+
+                const style = window.getComputedStyle(el);
+                if (style.position !== 'fixed') return;
+
+                const rect = el.getBoundingClientRect();
+                const coversScreen = rect.width >= window.innerWidth * 0.95 &&
+                                     rect.height >= window.innerHeight * 0.95 &&
+                                     rect.top <= 2 && rect.left <= 2;
+                const z = parseInt(style.zIndex || '0', 10);
+                const canBlock = style.pointerEvents !== 'none';
+                const className = (el.className || '').toString().toLowerCase();
+                const overlayLike = className.includes('overlay') || className.includes('backdrop');
+
+                if (coversScreen && canBlock && (z >= 999 || overlayLike)) {
+                    el.remove();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            cleanupBlockingLayers();
+
+            // Ensure right-click inspection is not blocked by page-level listeners.
+            window.addEventListener('contextmenu', function (event) {
+                event.stopImmediatePropagation();
+            }, true);
+
+            // Check for success message in page
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const messageType = urlParams.get('type');
+            
+            console.log('🔍 DOMContentLoaded - Message:', message, 'Type:', messageType);
+            
+            if (message && messageType) {
+                console.log('✅ Calling showAlert with:', messageType, message);
+                showAlert(messageType, message);
+                // Clean URL to remove query parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+        
+        function showAlert(type, message) {
+            console.log('🚨 showAlert called - Type:', type, 'Message:', message);
+            // Defensive cleanup in case a previous alert left a stale backdrop.
+            Swal.close();
+
+            const isAutoClose = type === 'success' || type === 'info';
+            
+            const config = {
+                icon: type === 'success' ? 'success' : type === 'error' ? 'error' : 'info',
+                title: type === 'success' ? 'Success!' : type === 'error' ? 'Error!' : 'Info',
+                text: message,
+                background: '#fff',
+                backdrop: false,
+                allowOutsideClick: true,
+                allowEscapeKey: true,
+                didOpen: (modal) => {
+                    console.log('✅ Alert opened');
+                },
+                didClose: () => {
+                    cleanupBlockingLayers();
+                }
+            };
+            
+            if (isAutoClose) {
+                config.timer = 2000;
+                config.timerProgressBar = true;
+                config.showConfirmButton = false;
+            } else {
+                config.showConfirmButton = true;
+                config.confirmButtonText = 'OK';
+                config.confirmButtonColor = type === 'error' ? '#d32f2f' : '#22a54a';
+            }
+            
+            return Swal.fire(config);
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

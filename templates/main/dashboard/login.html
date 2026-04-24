@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gateway - Green Bean Smart Admin</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        :root {
+            --primary: #22a54a;
+            --grad: linear-gradient(135deg, #155724 0%, #22a54a 100%);
+            --glass: rgba(255, 255, 255, 0.9);
+            --text-main: #0f172a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Abstract Background Elements */
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        .blob-1 { top: -100px; right: -100px; }
+        .blob-2 { bottom: -100px; left: -100px; animation: float 10s infinite alternate; }
+
+        @keyframes float {
+            from { transform: translate(0,0); }
+            to { transform: translate(50px, 50px); }
+        }
+
+        .auth-card-premium {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            width: 100%;
+            max-width: 440px;
+            padding: 50px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .brand-icon-box {
+            width: 64px;
+            height: 64px;
+            background: var(--grad);
+            color: white;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 20px rgba(34, 165, 74, 0.2);
+        }
+
+        .brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .auth-label {
+            display: block;
+            font-size: 0.825rem;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-wrapper-p {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .input-wrapper-p i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .input-p {
+            width: 100%;
+            padding: 14px 18px 14px 48px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: var(--text-main);
+        }
+
+        .input-p:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(34, 165, 74, 0.1);
+        }
+
+        .input-p:focus + i {
+            color: var(--primary);
+        }
+
+        .flex-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 0.875rem;
+        }
+
+        .btn-auth-p {
+            width: 100%;
+            padding: 15px;
+            border-radius: 14px;
+            background: var(--grad);
+            color: white;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 15px -3px rgba(34, 165, 74, 0.3);
+        }
+
+        .btn-auth-p:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(34, 165, 74, 0.4);
+        }
+
+        .error-toast {
+            background: #fff1f2;
+            color: #e11d48;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            border: 1px solid #fecdd3;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="auth-card-premium">
+        <div class="brand-section">
+            <div class="brand-icon-box"><i class="fas fa-leaf"></i></div>
+            <h2 class="brand-name">Green Bean Admin</h2>
+            <p style="color: #64748b; margin-top: 5px; font-weight: 500;">Secure Management Gateway</p>
+        </div>
+
+        {% if request.args.get('message') %}
+        <div class="error-toast">
+            <i class="fas fa-circle-exclamation"></i>
+            <span>{{ request.args.get('message') }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" id="loginForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="auth-label">Identity</label>
+            <div class="input-wrapper-p">
+                <i class="fas fa-user-shield"></i>
+                <input type="text" id="login" name="login" class="input-p" required placeholder="Username or Email">
+            </div>
+
+            <label class="auth-label">Validation</label>
+            <div class="input-wrapper-p">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" name="password" class="input-p" required placeholder="Access Password">
+            </div>
+
+            <div class="flex-options">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="remember" id="remember" style="accent-color: var(--primary);">
+                    Keep me logged in
+                </label>
+                <a href="#" style="color: var(--primary); text-decoration: none; font-weight: 600;">Lost Access?</a>
+            </div>
+
+            <button type="submit" class="btn-auth-p">
+                Next Stage <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <p class="footer-text">
+            No account yet? <a href="#" onclick="showLoginInfo(); return false;" style="color: var(--primary); font-weight: 700; text-decoration: none;">Apply for Access</a>
+        </p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function cleanupBlockingLayers() {
+            document.body.classList.remove('swal2-shown', 'swal2-height-auto', 'modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+            document.querySelectorAll('.swal2-container, .modal-backdrop, .loading-overlay').forEach(el => el.remove());
+
+            Array.from(document.body.children).forEach(el => {
+                if (!el || !el.classList) return;
+                if (el.matches('.auth-card-premium, .blob, script, style')) return;
+
+                const style = window.getComputedStyle(el);
+                if (style.position !== 'fixed') return;
+
+                const rect = el.getBoundingClientRect();
+                const coversScreen = rect.width >= window.innerWidth * 0.95 &&
+                                     rect.height >= window.innerHeight * 0.95 &&
+                                     rect.top <= 2 && rect.left <= 2;
+                const z = parseInt(style.zIndex || '0', 10);
+                const canBlock = style.pointerEvents !== 'none';
+                const className = (el.className || '').toString().toLowerCase();
+                const overlayLike = className.includes('overlay') || className.includes('backdrop');
+
+                if (coversScreen && canBlock && (z >= 999 || overlayLike)) {
+                    el.remove();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            cleanupBlockingLayers();
+
+            window.addEventListener('contextmenu', function (event) {
+                event.stopImmediatePropagation();
+            }, true);
+        });
+
+        function showLoginInfo() {
+            Swal.fire({
+                icon: 'info',
+                title: 'Admin Access',
+                text: 'Please contact your project administrator or create the first admin account if setup is still empty.',
+                backdrop: false,
+                confirmButtonColor: '#22a54a'
+            });
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const btn = this.querySelector('.btn-auth-p');
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Authenticating...';
+            btn.style.opacity = '0.8';
+            btn.style.pointerEvents = 'none';
+        });
+    </script>
+</body>
+</html>

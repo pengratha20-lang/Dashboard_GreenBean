@@ -1,28 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap');
+
 /* Shop Layout Styles */
 :root {
-  --primary-color: #28a745;
-  --primary-dark: #1e7e34;
-  --secondary-color: #6c757d;
+  --primary-color: #4bbb17;
+  --primary-dark: #3a9012;
+  --secondary-color: #59361a;
   --light-bg: #f8f9fa;
   --border-color: #dee2e6;
-  --text-muted: #6c757d;
+  --text-dark: #333;
+  --text-light: #666;
+  --text-muted: #888;
   --white: #ffffff;
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
   --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
   --box-shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --border-radius: 12px;
+  --transition: all 0.3s ease;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    color: var(--text-dark);
+}
+
+/* Dropdown Premium Styles */
+.dropdown-menu {
+  border: none;
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.dropdown-item {
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(40, 167, 69, 0.1);
+  color: var(--primary-color);
 }
 
 /* Header adjustments */
 .shop-header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-color);
-  z-index: 1000;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  z-index: 2000 !important;
 }
 
-.navbar-brand {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color) !important;
+/* Ensure navbar dropdowns are always on top */
+.navbar-nav .dropdown-menu {
+    z-index: 2001 !important;
+}
+
+#brand-logo {
+    font-family: "Libre Baskerville", serif;
+    font-style: italic;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color) !important;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+#brand-logo:hover {
+    transform: scale(1.05);
 }
 
 /* Mobile burger menu improvements */
@@ -466,6 +511,28 @@
   }
 }
 
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+}
+
 /* Price range inputs */
 #price-min, #price-max {
   border-radius: 6px;
@@ -524,9 +591,11 @@
 .footer .text-muted,
 .footer .footer-links a {
   color: #cfcfcf !important;
+  text-decoration: none;
 }
 
 .footer .text-muted:hover,
 .footer .footer-links a:hover {
   color: var(--primary-color) !important;
+  text-decoration: none;
 }

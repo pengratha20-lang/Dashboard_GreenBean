@@ -1,0 +1,183 @@
+{% extends "main/base.html" %}
+
+{% block title %}{{ title }} - Green Garden{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <!-- About Header -->
+  <div class="row mb-5">
+    <div class="col-lg-8 mx-auto text-center">
+      <h1 class="display-4 mb-4">About Green Garden</h1>
+      <p class="lead text-muted">
+        Cultivating Quality, Delivering Freshness, Building Community
+      </p>
+    </div>
+  </div>
+
+  <!-- Our Story -->
+  <div class="row mb-5">
+    <div class="col-lg-8 mx-auto">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="card-title mb-3">Our Story</h2>
+          <p class="card-text">
+            Green Garden was founded with a simple mission: to bring fresh, high-quality plants and gardening products 
+            directly to plant enthusiasts and home gardeners throughout the region. What started as a passion project 
+            has grown into a trusted community resource for all things green and growing.
+          </p>
+          <p class="card-text">
+            We believe that every home deserves a touch of nature, and every gardener deserves access to premium quality 
+            products and expert advice. That's why we've built our business around three core values.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Values -->
+  <div class="row mb-5">
+    <div class="col-lg-8 mx-auto">
+      <h2 class="mb-4">Our Core Values</h2>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card border-success h-100">
+            <div class="card-body">
+              <div class="mb-3">
+                <i class="fas fa-leaf fa-2x text-success"></i>
+              </div>
+              <h5 class="card-title">Quality First</h5>
+              <p class="card-text">
+                We source only the finest plants and products, ensuring every item meets our rigorous quality standards.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card border-success h-100">
+            <div class="card-body">
+              <div class="mb-3">
+                <i class="fas fa-handshake fa-2x text-success"></i>
+              </div>
+              <h5 class="card-title">Customer Trust</h5>
+              <p class="card-text">
+                Your satisfaction is our priority. We stand behind every product with exceptional customer service.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card border-success h-100">
+            <div class="card-body">
+              <div class="mb-3">
+                <i class="fas fa-earth-americas fa-2x text-success"></i>
+              </div>
+              <h5 class="card-title">Environmental Stewardship</h5>
+              <p class="card-text">
+                We're committed to sustainable practices that nurture both gardens and the planet.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card border-success h-100">
+            <div class="card-body">
+              <div class="mb-3">
+                <i class="fas fa-users fa-2x text-success"></i>
+              </div>
+              <h5 class="card-title">Community Building</h5>
+              <p class="card-text">
+                We foster a vibrant community of gardeners sharing knowledge, tips, and passion for plants.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Why Choose Us -->
+  <div class="row mb-5">
+    <div class="col-lg-8 mx-auto">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="card-title mb-4">Why Choose Green Garden?</h2>
+          <ul class="list-unstyled">
+            <li class="mb-3">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <strong>Premium Selection:</strong> Carefully curated plants, seeds, and gardening supplies
+            </li>
+            <li class="mb-3">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <strong>Expert Knowledge:</strong> Our team is always ready to help with plant care advice
+            </li>
+            <li class="mb-3">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <strong>Competitive Pricing:</strong> Quality plants at prices that won't break the bank
+            </li>
+            <li class="mb-3">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <strong>Fast Shipping:</strong> Your plants arrive healthy and ready to thrive
+            </li>
+            <li class="mb-3">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <strong>Satisfaction Guarantee:</strong> We stand behind every product we sell
+            </li>
+            <li class="mb-3">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <strong>Secure Payment:</strong> Multiple payment options including Bakong KHQR
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Section -->
+  <div class="row mb-5">
+    <div class="col-lg-8 mx-auto">
+      <div class="card bg-light border-0">
+        <div class="card-body p-4 text-center">
+          <h2 class="card-title mb-3">Ready to Get Started?</h2>
+          <p class="card-text text-muted mb-4">
+            Browse our collection of plants and gardening supplies, or reach out with any questions.
+          </p>
+          <div class="d-flex gap-2 justify-content-center flex-wrap">
+            <a href="{{ url_for('shop.shop') }}" class="btn btn-success btn-lg">
+              <i class="fas fa-leaf me-2"></i>Shop Now
+            </a>
+            <a href="{{ url_for('contact.contact') }}" class="btn btn-outline-success btn-lg">
+              <i class="fas fa-envelope me-2"></i>Contact Us
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  .border-success {
+    border-color: #28a745 !important;
+  }
+  
+  h1 {
+    color: #28a745;
+    font-weight: 700;
+  }
+  
+  h2 {
+    color: #333;
+    font-weight: 600;
+    margin-top: 2rem;
+  }
+</style>
+{% endblock %}

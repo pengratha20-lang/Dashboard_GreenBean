@@ -1,4 +1,4 @@
-{% extends "auth-base.html" %}
+{% extends "frontside/auth-base.html" %}
 
 {% block title %}Login to Green Bean - Premium Plant Store{% endblock %}
 
@@ -51,7 +51,7 @@
                 </div>
                 {% endif %}
 
-                <!-- Flash Messages -->
+                <!-- Flash Messages (for backward compatibility) -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
@@ -75,7 +75,7 @@
 
                     <!-- Card Body -->
                     <div class="card-body p-5">
-                        <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
+                        <form method="POST" action="{{ url_for('customer_auth.login') }}" id="loginForm">
                             <!-- Email Field -->
                             <div class="mb-4">
                                 <label for="email" class="form-label fw-600 mb-2">Email Address</label>
@@ -86,6 +86,7 @@
                                     <input type="email" class="form-control border-0" id="email" name="email" 
                                            placeholder="your.email@example.com" required style="padding: 12px; font-size: 16px;">
                                 </div>
+                                <small class="text-muted d-block mt-2">Use your registered email.</small>
                             </div>
 
                             <!-- Password Field -->
@@ -98,14 +99,7 @@
                                     <input type="password" class="form-control border-0" id="password" name="password" 
                                            placeholder="Enter your password" required style="padding: 12px; font-size: 16px;">
                                 </div>
-                            </div>
-
-                            <!-- Remember Me Checkbox -->
-                            <div class="form-check mb-4">
-                                <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
-                                <label class="form-check-label" for="rememberMe">
-                                    Remember me for next time
-                                </label>
+                                <small class="text-muted d-block mt-2">Min. 6 characters.</small>
                             </div>
 
                             <!-- Login Button -->
@@ -124,7 +118,7 @@
                             <!-- Register Link -->
                             <p class="text-center mb-0">
                                 Don't have an account? 
-                                <a href="{{ url_for('auth.register') }}" class="fw-bold text-success text-decoration-none" style="font-size: 16px;">
+                                <a href="{{ url_for('customer_auth.register') }}" class="fw-bold text-success text-decoration-none" style="font-size: 16px;">
                                     Create one now <i class="fas fa-arrow-right ms-1"></i>
                                 </a>
                             </p>
@@ -227,5 +221,102 @@
         }
     }
 </style>
+
+<script>
+    // Handle form submission - Flask does the validation!
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        console.log('Submitting login form...');
+        
+        try {
+            const response = await fetch('{{ url_for("customer_auth.login") }}', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json'  // Tell server to return JSON, not error page
+                }
+            });
+            
+            const responseText = await response.text();
+            console.log('Response status:', response.status);
+            
+            // Check HTTP status code - if 400+ it's an error
+            if (response.status >= 400) {
+                console.log('Error detected, status:', response.status);
+                
+                // Extract error from response HTML
+                let errorMessage = 'An error occurred. Please try again.';
+                
+                // Try multiple extraction methods
+                let patterns = [
+                    /login_error\s*:\s*['"](.*?)['"]/, // Jinja context
+                    /login_error\s*=\s*['"](.*?)['"]/, // Assignment
+                    /login_error['":\s]+([^'"<\n}]+)/ // Generic pattern
+                ];
+                
+                for (let pattern of patterns) {
+                    const match = responseText.match(pattern);
+                    if (match && match[1]) {
+                        errorMessage = match[1].trim();
+                        console.log('Found error:', errorMessage);
+                        break;
+                    }
+                }
+                
+                Swal.fire({
+                    title: 'Login Failed ❌',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonText: 'Try Again',
+                    confirmButtonColor: '#4bbb17',
+                    allowOutsideClick: false
+                });
+                return;
+            }
+            
+            // Status 200-399 = SUCCESS!
+            console.log('Login successful!');
+            Swal.fire({
+                title: 'Login Successful! ✅',
+                text: 'Welcome back! Redirecting...',
+                icon: 'success',
+                confirmButtonText: 'Continue',
+                confirmButtonColor: '#4bbb17',
+                allowOutsideClick: false,
+                timer: 2000,
+                timerProgressBar: true
+            }).then(() => {
+                window.location.href = '{{ request.args.get("next", url_for("home.home")) }}';
+            });
+            
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Network Error',
+                text: error.message,
+                icon: 'error',
+                confirmButtonText: 'Try Again',
+                confirmButtonColor: '#4bbb17'
+            });
+        }
+    });
+
+    // Show error if page loaded with error variable
+    {% if login_error %}
+        console.log('Page loaded with error:', '{{ login_error }}');
+        Swal.fire({
+            title: 'Login Failed ❌',
+            text: '{{ login_error }}',
+            icon: 'error',
+            confirmButtonText: 'Try Again',
+            confirmButtonColor: '#4bbb17',
+            allowOutsideClick: false
+        });
+    {% endif %}
+</script>
+</script>
 
 {% endblock %}

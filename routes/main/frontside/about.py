@@ -1,8 +1,8 @@
-from flask import Blueprint, redirect, url_for
+from flask import Blueprint, render_template
 
 about_bp = Blueprint('about', __name__)
 
 @about_bp.route('/about')
 def about():
-    # Redirect to homepage about section instead of separate page
-    return redirect(url_for('home.home') + '#about')
+    # Render dedicated about page
+    return render_template('frontside/home/about.html', title="Green Garden - About Us")

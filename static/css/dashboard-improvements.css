@@ -1,0 +1,442 @@
+/**
+ * Dashboard Improvements - Forms, Loading States, and UI Enhancements
+ */
+
+/* ============ FORM IMPROVEMENTS ============ */
+
+.form-error-message {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+}
+
+.form-group.has-error {
+    margin-bottom: 1.5rem;
+}
+
+.form-group.has-error label {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='12 12 24 24'%3e%3ccircle cx='24' cy='24' r='12' fill='none' stroke='%23dc3545' stroke-width='2'/%3e%3cpath fill='%23dc3545' d='M24 17v6M24 27a1 1 0 1 1 0 2 1 1 0 0 1 0-2'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    padding-right: calc(1.5em + 0.75rem);
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* ============ LOADING STATES ============ */
+
+button.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+button.loading .spinner-border {
+    display: inline-block;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* ============ VALIDATION FEEDBACK ============ */
+
+.alert-validation {
+    border-left: 4px solid #ffc107;
+    background-color: #fffbea;
+    margin-bottom: 1.5rem;
+}
+
+.alert-validation .alert-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.alert-validation .suggestion {
+    font-size: 0.875rem;
+    color: #856404;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* ============ BULK OPERATIONS UI ============ */
+
+.bulk-actions-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #22a74e;
+    color: white;
+    padding: 1rem;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1030;
+}
+
+.bulk-actions-bar.d-none {
+    display: none !important;
+}
+
+.bulk-actions-bar button {
+    margin-left: 0.5rem;
+}
+
+.bulk-selection-info {
+    font-weight: 500;
+}
+
+/* Checkbox styling for bulk selection */
+
+.bulk-checkbox {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.bulk-checkbox:hover {
+    accent-color: #22a74e;
+}
+
+table tbody tr:has(.bulk-checkbox:checked) {
+    background-color: rgba(34, 167, 74, 0.1);
+}
+
+/* ============ STATUS BADGES ============ */
+
+.badge-status {
+    padding: 0.35rem 0.65rem;
+    font-weight: 600;
+    border-radius: 4px;
+}
+
+.badge-status-pending {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.badge-status-processing {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-status-completed {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-status-cancelled {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-stock-instock {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-stock-lowstock {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.badge-stock-outofstock {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* ============ ORDER TIMELINE ============ */
+
+.order-timeline {
+    position: relative;
+    padding: 1rem 0;
+}
+
+.timeline-item {
+    display: flex;
+    padding: 1rem 0;
+    position: relative;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-marker {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    background: #22a74e;
+    border: 3px solid white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.timeline-marker i {
+    color: white;
+    font-size: 0.75rem;
+}
+
+.timeline-content {
+    flex: 1;
+}
+
+.timeline-time {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.timeline-title {
+    font-weight: 600;
+    margin: 0.25rem 0;
+}
+
+.timeline-description {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+/* ============ STOCK MANAGEMENT ============ */
+
+.stock-alert {
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.stock-alert-critical {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.stock-alert-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.stock-alert-info {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}
+
+/* ============ SESSION TIMEOUT WARNING ============ */
+
+.session-warning-modal .modal-header {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    border-color: #ff9800;
+}
+
+.session-warning-modal .modal-header .modal-title {
+    color: white;
+    font-weight: 600;
+}
+
+.session-warning-modal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* ============ GLOBAL SEARCH ============ */
+
+.global-search-container {
+    position: relative;
+}
+
+.global-search-input {
+    border-radius: 20px;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid #ddd;
+    transition: all 0.2s;
+}
+
+.global-search-input:focus {
+    border-color: #22a74e;
+    box-shadow: 0 0 0 0.2rem rgba(34, 167, 74, 0.1);
+}
+
+.global-search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.search-results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.search-result-group {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.search-result-group:last-child {
+    border-bottom: none;
+}
+
+.search-result-group-title {
+    padding: 0.5rem 1rem;
+    background: #f5f5f5;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.search-result-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-result-item:hover {
+    background-color: #f0f0f0;
+}
+
+.search-result-info {
+    flex: 1;
+}
+
+.search-result-name {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.search-result-meta {
+    font-size: 0.75rem;
+    color: #999;
+}
+
+.search-result-badge {
+    background: #22a74e;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+/* ============ ICON PICKER ============ */
+
+.icon-picker-modal .modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 0.5rem;
+}
+
+.icon-option {
+    padding: 0.75rem;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: all 0.2s;
+}
+
+.icon-option:hover {
+    border-color: #22a74e;
+    background-color: #f0f0f0;
+}
+
+.icon-option.selected {
+    border-color: #22a74e;
+    background-color: rgba(34, 167, 74, 0.1);
+}
+
+/* ============ RESPONSIVE IMPROVEMENTS ============ */
+
+@media (max-width: 768px) {
+    .bulk-actions-bar {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .bulk-actions-bar button {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .order-timeline {
+        margin-left: 1rem;
+    }
+
+    .timeline-item::before {
+        left: -10px;
+    }
+
+    .global-search-input {
+        max-width: 100%;
+    }
+}

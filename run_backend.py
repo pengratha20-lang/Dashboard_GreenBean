@@ -19,4 +19,4 @@ print("✓ Mode: BACKEND (Admin Dashboard)")
 print("="*60 + "\n")
 
 # Run the unified app
-subprocess.run([sys.executable, 'app_unified.py'])
+subprocess.run([sys.executable, 'app.py'])

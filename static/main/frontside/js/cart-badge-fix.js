@@ -2,6 +2,32 @@
 (function() {
     'use strict';
     
+    // Clear cart for guests (non-logged-in users)
+    function clearGuestCart() {
+        // Check if user is logged in by looking at meta tag (same as cart-sync.js)
+        const userMeta = document.querySelector('meta[name="user-id"]');
+        const userId = userMeta ? String(userMeta.getAttribute('content') || '').trim() : '';
+        const isLoggedIn = Boolean(userId);
+        
+        console.log('🔍 Cart check - User ID:', userId || 'GUEST');
+        
+        if (!isLoggedIn) {
+            // For guests, ensure cart is completely empty
+            console.log('🧹 Guest detected - clearing cart');
+            localStorage.removeItem('cart');
+            localStorage.removeItem('appliedCoupon');
+            localStorage.removeItem('appliedCouponMeta');
+            localStorage.setItem('cart_owner_id', 'guest');
+            
+            // Force update badge to 0
+            const badge = document.getElementById('cart-badge');
+            if (badge) {
+                badge.textContent = '0';
+                console.log('✅ Badge cleared to 0');
+            }
+        }
+    }
+    
     // Global cart badge update function
     function forceUpdateAllCartBadges() {
         console.log('🔄 Force updating all cart badges...');
@@ -45,8 +71,25 @@
         return totalItems;
     }
     
-    // Update immediately when script loads
-    document.addEventListener('DOMContentLoaded', forceUpdateAllCartBadges);
+    // Clear guest cart IMMEDIATELY when script loads (before DOM render)
+    (function() {
+        const userMeta = document.querySelector('meta[name="user-id"]');
+        const userId = userMeta ? String(userMeta.getAttribute('content') || '').trim() : '';
+        if (!userId) {
+            // Guest - clear cart immediately
+            localStorage.removeItem('cart');
+            localStorage.removeItem('appliedCoupon');
+            localStorage.removeItem('appliedCouponMeta');
+            localStorage.setItem('cart_owner_id', 'guest');
+            console.log('⚡ Immediate guest cart clear executed');
+        }
+    })();
+    
+    // Clear and update when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        clearGuestCart();
+        forceUpdateAllCartBadges();
+    });
     
     // Update when page becomes visible
     document.addEventListener('visibilitychange', () => {
@@ -65,8 +108,8 @@
     // Listen for custom cart events
     window.addEventListener('cartUpdated', forceUpdateAllCartBadges);
     
-    // Force update every 2 seconds (remove this in production)
-    setInterval(forceUpdateAllCartBadges, 2000);
+    // Force update every 5 seconds (reduced from 2s for better performance)
+    setInterval(forceUpdateAllCartBadges, 5000);
     
     // Make function globally available
     window.forceUpdateCartBadges = forceUpdateAllCartBadges;

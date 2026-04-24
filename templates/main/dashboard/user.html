@@ -1,0 +1,229 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}User Administration - Green Bean Smart Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-table-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+    }
+
+    .user-profile-cell {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .user-avatar-premium {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        object-fit: cover;
+        border: 2px solid #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .avatar-placeholder-premium {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: var(--grad-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.25rem;
+        box-shadow: 0 4px 10px rgba(34, 165, 74, 0.2);
+    }
+
+    .user-meta-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-display-name {
+        font-weight: 800;
+        color: #1e293b;
+        font-size: 0.95rem;
+    }
+
+    .user-id-badge {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .role-badge-premium {
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .user-search-wrapper {
+        position: relative;
+        max-width: 400px;
+    }
+
+    .user-search-wrapper i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    .user-search-input {
+        padding: 12px 15px 12px 45px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        width: 100%;
+        background: #f8fafc;
+        transition: all 0.2s;
+    }
+
+    .user-search-input:focus {
+        background: white;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(34, 165, 74, 0.1);
+        outline: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-5 align-items-center">
+    <div class="col">
+        <h1 class="module-title mb-1">Access Control</h1>
+        <p class="text-muted">Manage administrative privileges and user accounts.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('user_module.add_user') }}" class="btn-premium">
+            <i class="fas fa-user-plus me-2"></i> Create Administrator
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col">
+        <div class="user-search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="userSearch" class="user-search-input" placeholder="Search by username or email..." onkeyup="filterUsers()">
+        </div>
+    </div>
+</div>
+
+<div class="user-table-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Administrator</th>
+                    <th>Email Address</th>
+                    <th>Member Since</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Manage</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                {% if users %}
+                    {% for user in users %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="user-profile-cell">
+                                {% if user.profile_pic and user.profile_pic != 'default.png' %}
+                                <img src="{{ url_for('static', filename='images/user/resized/' + user.profile_pic) }}" 
+                                     class="user-avatar-premium" alt="{{ user.username }}">
+                                {% else %}
+                                <div class="avatar-placeholder-premium">
+                                    {{ user.username[0].upper() }}
+                                </div>
+                                {% endif %}
+                                <div class="user-meta-text">
+                                    <span class="user-display-name">{{ user.username }}</span>
+                                    <span class="user-id-badge">UID: {{ user.id }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="text-muted fw-bold">{{ user.email if user.email else 'no-email@store.com' }}</span></td>
+                        <td><small class="text-muted fw-bold">{{ user.created_at if user.created_at else 'Oct 20, 2024' }}</small></td>
+                        <td><span class="role-badge-premium">Super Admin</span></td>
+                        <td class="text-end pe-4">
+                            <div class="action-buttons justify-content-end">
+                                <a href="{{ url_for('user_module.edit_user', user_id=user.id) }}" class="btn-icon btn-edit" title="Settings">
+                                    <i class="fas fa-cog"></i>
+                                </a>
+                                <button class="btn-icon btn-delete" onclick="confirmPurge('{{ user.id }}')" title="Revoke Access">
+                                    <i class="fas fa-shield-halved"></i>
+                                </button>
+                                <form id="purge-form-{{ user.id }}" method="POST" action="{{ url_for('user_module.delete_user', user_id=user.id) }}" class="d-none"></form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="5" class="text-center py-5">No active sessions found.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if total_pages > 1 %}
+<div class="d-flex justify-content-center mt-4">
+    <nav class="pagination-nav gap-2 d-flex">
+        {% if page > 1 %}
+        <a href="{{ url_for('user_module.users_route', page=page-1) }}" class="pagination-btn"><i class="fas fa-chevron-left"></i></a>
+        {% endif %}
+
+        {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+        <span class="pagination-btn active">{{ p }}</span>
+        {% else %}
+        <a href="{{ url_for('user_module.users_route', page=p) }}">{{ p }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="{{ url_for('user_module.users_route', page=page+1) }}" class="pagination-btn"><i class="fas fa-chevron-right"></i></a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function filterUsers() {
+        const query = document.getElementById('userSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('#userTableBody tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    }
+
+    function confirmPurge(id) {
+        Swal.fire({
+            title: 'Revoke Access?',
+            text: "This administrator will be immediately disconnected.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Revoke Identity',
+            borderRadius: '16px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`purge-form-${id}`).submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

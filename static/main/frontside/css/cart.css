@@ -14,7 +14,6 @@
 }
 
 .cart-header {
-  border-bottom: 1px solid #dee2e6;
 }
 
 .cart-items-list {
@@ -206,6 +205,15 @@
 
 .recommended-product:hover {
   transform: translateY(-5px);
+}
+
+/* Footer Links - Remove underline */
+.footer .footer-links a {
+  text-decoration: none;
+}
+
+.footer .footer-links a:hover {
+  text-decoration: none;
 }
 
 /* Mobile Responsive */

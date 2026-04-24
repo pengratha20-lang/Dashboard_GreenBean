@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        :root {
+            --error-bg-1: #f4fbf2;
+            --error-bg-2: #eef4ff;
+            --error-accent: #2f855a;
+            --error-accent-soft: rgba(47, 133, 90, 0.12);
+            --error-text: #1f2937;
+            --error-muted: #6b7280;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--error-text);
+            background:
+                radial-gradient(circle at top left, #d9f99d 0, transparent 30%),
+                radial-gradient(circle at bottom right, #bfdbfe 0, transparent 28%),
+                linear-gradient(135deg, var(--error-bg-1), var(--error-bg-2));
+            font-family: "Inter", system-ui, sans-serif;
+        }
+
+        .error-shell {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .error-card {
+            width: 100%;
+            max-width: 760px;
+            border: 0;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 25px 60px rgba(31, 41, 55, 0.12);
+        }
+
+        .error-code {
+            font-size: clamp(4rem, 16vw, 7rem);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.06em;
+            color: var(--error-accent);
+        }
+
+        .error-icon {
+            width: 78px;
+            height: 78px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 22px;
+            background: var(--error-accent-soft);
+            color: var(--error-accent);
+            font-size: 2rem;
+        }
+
+        .error-path {
+            border-radius: 999px;
+            background: #f8fafc;
+            color: var(--error-muted);
+            font-size: 0.92rem;
+        }
+    </style>
+</head>
+<body>
+    <main class="error-shell">
+        <section class="card error-card">
+            <div class="card-body p-4 p-md-5">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-5 text-center text-lg-start">
+                        <div class="error-icon mb-3">
+                            <i class="fas {{ icon }}"></i>
+                        </div>
+                        <div class="error-code">{{ code }}</div>
+                        <div class="mt-3">
+                            <span class="badge error-path px-3 py-2">{{ request.path }}</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <h1 class="h2 fw-bold mb-3">{{ heading }}</h1>
+                        <p class="text-secondary mb-3">{{ message }}</p>
+                        <p class="text-muted mb-4">{{ helper_text }}</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ primary_href }}" class="btn btn-success">
+                                <i class="fas {{ primary_icon }} me-2"></i>{{ primary_label }}
+                            </a>
+                            <a href="{{ secondary_href }}" class="btn btn-outline-dark">
+                                <i class="fas {{ secondary_icon }} me-2"></i>{{ secondary_label }}
+                            </a>
+                            <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()">
+                                <i class="fas fa-rotate-right me-2"></i>Try Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

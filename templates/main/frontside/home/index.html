@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "frontside/base.html" %}
 
 {% block title %}Green Bean - Premium Plant Store{% endblock %}
 
@@ -18,7 +18,7 @@
       <div class="carousel-inner">
         <!-- Slide 1 -->
         <div class="carousel-item active">
-          <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for('static', filename='images/slide_banner/Plant_banner.png') }}') center/cover;">
+          <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for('static', filename='main/frontside/images/slide_banner/Plant_banner.png') }}') center/cover;">
             <div class="container h-100">
               <div class="row h-100 align-items-center">
                 <div class="col-lg-6">
@@ -45,7 +45,7 @@
         
         <!-- Slide 2 -->
         <div class="carousel-item">
-          <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for('static', filename='images/slide_banner/Plant_banner_2.png') }}') center/cover;">
+          <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for('static', filename='main/frontside/images/slide_banner/Plant_banner_2.png') }}') center/cover;">
             <div class="container h-100">
               <div class="row h-100 align-items-center">
                 <div class="col-lg-6">
@@ -83,7 +83,7 @@
         
         <!-- Slide 3 -->
         <div class="carousel-item">
-          <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for('static', filename='images/slide_banner/Plant_banner_3.png') }}') center/cover;">
+          <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for('static', filename='main/frontside/images/slide_banner/Plant_banner_3.png') }}') center/cover;">
             <div class="container h-100">
               <div class="row h-100 align-items-center">
                 <div class="col-lg-6">
@@ -128,42 +128,42 @@
       </button>
     </div>
   <!-- Promotional Banner -->
-  {% include 'components/promo-banner.html' %}
+  {% include "frontside/components/promo-banner.html" %}
 
   <!-- Features Section -->
-  {% include 'components/features-section.html' %}
+  {% include "frontside/components/features-section.html" %}
 
   <!-- Featured Products Section -->
-  {% include 'components/featured-products.html' %}
+  {% include "frontside/components/featured-products.html" %}
 
   <!-- New Arrivals Section -->
-  {% include 'components/new-arrivals.html' %}
+  {% include "frontside/components/new-arrivals.html" %}
 
   <!-- Popular Products Section -->
-  {% include 'components/popular-products.html' %}
+  {% include "frontside/components/popular-products.html" %}
 
   <!-- Plant Care Guide Section -->
-  {% include 'components/plant-care-guide.html' %}
+  {% include "frontside/components/plant-care-guide.html" %}
 
   <!-- Statistics Section -->
-  {% include 'components/statistics.html' %}
+  {% include "frontside/components/statistics.html" %}
 
   <!-- Testimonials Section -->
-  {% include 'components/testimonials.html' %}
+  {% include "frontside/components/testimonials.html" %}
 
   <!-- Services Section -->
-  {% include 'components/services.html' %}
+  {% include "frontside/components/services.html" %}
 
   <!-- Newsletter Section -->
-  {% include 'components/newsletter.html' %}
+  {% include "frontside/components/newsletter.html" %}
 
   <!-- About Section -->
-  {% include 'components/about.html' %}
+  {% include "frontside/components/about.html" %}
 
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+<script src="{{ url_for('static', filename='main/frontside/js/index.js') }}"></script>
 <script>
   // Smooth scroll & hash offset for fixed navbar
   document.addEventListener('DOMContentLoaded', function() {
@@ -228,3 +228,4 @@
   }
 </script>
 {% endblock %}
+

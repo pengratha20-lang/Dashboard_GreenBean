@@ -6,51 +6,17 @@
   <title>Product Details - Green Bean</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/product.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/shop-layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/product.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/shop-layout.css') }}">
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
-  <header class="shop-header fixed-top">
-    <div class="container-fluid">
-      <nav class="navbar navbar-expand-lg navbar-light py-3">
-        <div class="container-fluid">
-          <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home.home') }}" id="brand-logo">
-            <i class="fas fa-leaf me-2 text-success"></i>
-            <span>Green Bean</span>
-          </a>
-          
-          <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false"
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          
-          <div class="collapse navbar-collapse" id="navbarContent">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-              <li class="nav-item"><a class="nav-link fw-semibold" href="{{ url_for('home.home') }}">Home</a></li>
-              <li class="nav-item"><a class="nav-link fw-semibold" href="{{ url_for('shop.shop') }}">Shop</a></li>
-              <li class="nav-item"><a class="nav-link fw-semibold" href="{{ url_for('home.home') }}#services">Services</a></li>
-              <li class="nav-item"><a class="nav-link fw-semibold" href="{{ url_for('home.home') }}#about">About</a></li>
-              <li class="nav-item"><a class="nav-link fw-semibold" href="{{ url_for('contact.contact') }}">Contact</a></li>
-            </ul>
-            
-            <div class="d-flex align-items-center gap-3">
-              <!-- Cart Button -->
-              <a href="{{ url_for('cart.cart') }}" class="btn btn-outline-success position-relative">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-badge">
-                  0
-                  <span class="visually-hidden">items in cart</span>
-                </span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </nav>
-    </div>
-  </header>
+  <!-- Shop Navigation -->
+  {% set show_sidebar_toggle = false %}
+  {% include "frontside/components/shop-navbar.html" %}
 
-  <main class="pt-2" style="margin-top: 20px;">
+  <main class="main-content pt-5">
     <!-- Breadcrumb -->
     <div class="container">
           <nav aria-label="breadcrumb">
@@ -68,8 +34,12 @@
         <div class="col-md-6">
           <div class="product-image-section">
             <div class="main-image mb-3">
-              <img src="http://localhost:5000/api/products/{{ product.id }}/image" alt="{{ product.name }}" id="product-img" class="img-fluid rounded shadow" 
-                   onerror="this.src='{{ url_for('static', filename='images/' + product.image) }}'">
+              <!-- Display original full-size image for detail view -->
+              <img src="{{ product.image_urls.original }}" 
+                   alt="{{ product.name }}" 
+                   id="product-img" 
+                    class="img-fluid" 
+                   loading="lazy">
             </div>
             <!-- Thumbnail gallery -->
             <div class="thumbnail-gallery d-flex gap-2" id="thumbnail-gallery">
@@ -81,13 +51,13 @@
         <!-- Product Info -->
         <div class="col-md-6">
           <div class="product-info">
-            <div class="product-badges mb-2" id="product-badges">
+            <div class="product-badges mb-3" id="product-badges">
               <!-- Badges will be populated by JavaScript -->
             </div>
             
-            <h1 class="product-title mb-3" id="product-title">{{ product.name }}</h1>
+            <h1 class="product-title mb-2" id="product-title">{{ product.name }}</h1>
             
-            <div class="product-rating mb-3">
+            <div class="product-rating mb-3 d-flex align-items-center">
               <div class="stars" id="product-rating">
                 {% if product.rating %}
                   {% for i in range(5) %}
@@ -105,52 +75,54 @@
                   <i class="fas fa-star-half-alt text-warning"></i>
                 {% endif %}
               </div>
-              <span class="rating-text text-muted ms-2">({{ product.rating if product.rating else '4.5' }}/5 reviews)</span>
+              <span class="rating-text text-muted ms-2 small">({{ product.rating if product.rating else '4.5' }}/5 reviews)</span>
             </div>
             
-            <div class="price-section mb-4">
-              <span class="current-price h3 text-success fw-bold" id="product-price">${{ "%.2f"|format(product.price) }}</span>
+            <div class="price-section mb-4 border-bottom pb-3">
+              <span class="current-price h2 text-success fw-bold" id="product-price">${{ "%.2f"|format(product.price) }}</span>
               <span class="original-price text-muted text-decoration-line-through ms-2" id="original-price" style="display: none;"></span>
               <span class="discount-badge badge bg-danger ms-2" id="discount-badge" style="display: none;"></span>
             </div>
             
             <div class="product-description mb-4">
-              <h5>Description</h5>
-              <p id="product-desc" class="text-muted">{{ product.description }}</p>
+              <h5 class="small fw-600">Description</h5>
+              <p id="product-desc" class="text-muted small">{{ product.description }}</p>
             </div>
 
             <!-- Product Features -->
-            <div class="product-features mb-4" id="product-features">
-              <h6>Key Features:</h6>
-              <ul class="list-unstyled" id="features-list">
+            <div class="product-features mb-4">
+              <h6 class="fw-600">Key Features:</h6>
+              <ul class="list-unstyled features-list" id="features-list">
                 {% if product.category == 'indoor' %}
-                  <li><i class="fas fa-check text-success me-2"></i>Air purifying properties</li>
-                  <li><i class="fas fa-check text-success me-2"></i>Perfect for indoor spaces</li>
-                  <li><i class="fas fa-check text-success me-2"></i>Low to moderate light requirements</li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Air purifying properties</span></li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Perfect for indoor spaces</span></li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Low to moderate light requirements</span></li>
                 {% elif product.category == 'outdoor' %}
-                  <li><i class="fas fa-check text-success me-2"></i>Weather resistant</li>
-                  <li><i class="fas fa-check text-success me-2"></i>Thrives in natural sunlight</li>
-                  <li><i class="fas fa-check text-success me-2"></i>Perfect for gardens and patios</li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Weather resistant</span></li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Thrives in natural sunlight</span></li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Perfect for gardens and patios</span></li>
                 {% elif product.category == 'pot' %}
-                  <li><i class="fas fa-check text-success me-2"></i>Durable construction</li>
-                  <li><i class="fas fa-check text-success me-2"></i>Proper drainage system</li>
-                  <li><i class="fas fa-check text-success me-2"></i>Stylish design</li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Durable construction</span></li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Proper drainage system</span></li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Stylish design</span></li>
                 {% elif product.category == 'accessories' %}
-                  <li><i class="fas fa-check text-success me-2"></i>High-quality materials</li>
-                  <li><i class="fas fa-check text-success me-2"></i>Functional design</li>
-                  <li><i class="fas fa-check text-success me-2"></i>Long-lasting durability</li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>High-quality materials</span></li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Functional design</span></li>
+                  <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Long-lasting durability</span></li>
                 {% endif %}
-                <li><i class="fas fa-check text-success me-2"></i>Premium quality guaranteed</li>
+                <li class="mb-2"><i class="fas fa-check text-success me-2"></i><span>Premium quality guaranteed</span></li>
               </ul>
             </div>
 
             <!-- Care Instructions -->
-            <div class="care-instructions mb-4" id="care-instructions">
-              <h6>Care Instructions:</h6>
-              <div class="care-icons d-flex gap-3">
+            <div class="care-instructions mb-4 p-3 border rounded" id="care-instructions" style="background-color: #f8f9fa;">
+              <h6 class="fw-600 mb-3">Care Instructions:</h6>
+              <div class="care-icons d-flex gap-4 justify-content-around">
                 <div class="care-item text-center">
-                  <i class="fas fa-sun text-warning fs-4"></i>
-                  <small class="d-block">Light</small>
+                  <div class="care-icon-box mb-2">
+                    <i class="fas fa-sun text-warning" style="font-size: 2.5rem;"></i>
+                  </div>
+                  <small class="d-block fw-500">Light</small>
                   <small class="text-muted" id="light-req">
                     {% if product.category == 'indoor' %}Bright Indirect
                     {% elif product.category == 'outdoor' %}Full Sun
@@ -159,8 +131,10 @@
                   </small>
                 </div>
                 <div class="care-item text-center">
-                  <i class="fas fa-tint text-primary fs-4"></i>
-                  <small class="d-block">Water</small>
+                  <div class="care-icon-box mb-2">
+                    <i class="fas fa-tint text-primary" style="font-size: 2.5rem;"></i>
+                  </div>
+                  <small class="d-block fw-500">Water</small>
                   <small class="text-muted" id="water-req">
                     {% if product.category == 'indoor' %}Weekly
                     {% elif product.category == 'outdoor' %}Bi-weekly
@@ -169,8 +143,10 @@
                   </small>
                 </div>
                 <div class="care-item text-center">
-                  <i class="fas fa-thermometer-half text-info fs-4"></i>
-                  <small class="d-block">Temp</small>
+                  <div class="care-icon-box mb-2">
+                    <i class="fas fa-thermometer-half text-info" style="font-size: 2.5rem;"></i>
+                  </div>
+                  <small class="d-block fw-500">Temperature</small>
                   <small class="text-muted">
                     {% if product.category in ['indoor', 'outdoor'] %}65-75°F
                     {% else %}N/A
@@ -186,23 +162,51 @@
                 <label for="quantity" class="form-label">Quantity:</label>
                 <div class="input-group quantity-input" style="width: 120px;">
                   <button class="btn btn-outline-secondary" type="button" id="decrease-qty">-</button>
-                  <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="10">
+                  <input type="number" class="form-control text-center" id="quantity" name="quantity" value="1" min="1" max="10">
                   <button class="btn btn-outline-secondary" type="button" id="increase-qty">+</button>
                 </div>
               </div>
               
-              <div class="action-buttons d-flex gap-2 mb-3">
+              <!-- Modern Approach: JavaScript-based Add to Cart -->
+              <div class="action-buttons d-flex gap-2 mb-3" id="js-add-to-cart-buttons">
                 <button class="btn btn-success btn-lg flex-fill" id="add-to-cart"
                         data-product-id="{{ product.id }}" 
                         data-product-name="{{ product.name }}" 
                         data-product-price="{{ product.price }}" 
-                        data-product-image="http://localhost:5000/api/products/{{ product.id }}/thumbnail">
+                        data-product-image="{{ product.image_urls.card }}">
                   <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                 </button>
-                <button class="btn btn-outline-danger" id="wishlist-btn" title="Add to Wishlist">
+                <button class="btn btn-outline-danger add-to-wishlist-btn" id="wishlist-btn" title="Add to Wishlist"
+                        data-product-id="{{ product.id }}" 
+                        data-product-name="{{ product.name }}" 
+                        data-product-price="{{ product.price }}" 
+                        data-product-image="{{ product.image_urls.card }}">
                   <i class="far fa-heart"></i>
                 </button>
               </div>
+
+              <!-- Fallback Approach: Form-based Add to Cart (No JavaScript needed) -->
+              <form method="POST" action="{{ url_for('cart.add_to_cart_form') }}" class="d-none" id="form-add-to-cart">
+                {{ csrf_token() }}
+                <input type="hidden" name="id" value="{{ product.id }}">
+                <input type="hidden" name="name" value="{{ product.name }}">
+                <input type="hidden" name="price" value="{{ product.price }}">
+                <input type="hidden" name="image" value="{{ product.image_urls.card }}">
+                <input type="hidden" name="quantity" id="form-quantity" value="1">
+                <input type="hidden" name="redirect_to" value="{{ request.url }}">
+                
+                <noscript>
+                  <!-- Show this form if JavaScript is disabled -->
+                  <div class="alert alert-info" role="alert">
+                    <strong>JavaScript Disabled:</strong> Using form submission instead.
+                  </div>
+                  <div class="action-buttons d-flex gap-2 mb-3">
+                    <button type="submit" class="btn btn-success btn-lg flex-fill">
+                      <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                    </button>
+                  </div>
+                </noscript>
+              </form>
               
               <div class="additional-actions d-flex gap-2">
                 <a href="{{ url_for('shop.shop') }}" class="btn btn-outline-secondary">
@@ -493,11 +497,14 @@
                           <h6 class="spec-title mb-3">
                             <i class="fas fa-box text-success me-2"></i>Product Information
                           </h6>
+                          <div class="product-description-header mb-4">
+                            <h6 class="text-dark fw-bold mb-3">About this product</h6>
+                            <p class="text-muted" style="line-height: 1.8; font-size: 0.95rem;">
+                              {{ product.description if product.description else "No description available for this product." }}
+                            </p>
+                          </div>
                           <div class="row">
-                            <div class="col-md-8">
-                              <p class="text-muted mb-3">{{ product.description }}</p>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                               <div class="spec-list">
                                 <div class="spec-row">
                                   <span class="spec-label">Product:</span>
@@ -509,8 +516,20 @@
                                 </div>
                                 <div class="spec-row">
                                   <span class="spec-label">Category:</span>
-                                  <span class="spec-value badge bg-primary">{{ product.category|title }}</span>
+                                  <span class="spec-value">
+                                    <span class="badge bg-primary rounded-pill px-3">{{ product.category|title }}</span>
+                                  </span>
                                 </div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <!-- Potential space for more specs or a small delivery info box -->
+                              <div class="bg-light p-3 rounded-3 mt-md-0 mt-3 h-100 d-flex align-items-center">
+                                <small class="text-muted">
+                                  <i class="fas fa-shipping-fast text-success me-2"></i> Fast delivery within 3-5 business days.
+                                  <br>
+                                  <i class="fas fa-check-circle text-success me-2"></i> 100% Quality guaranteed.
+                                </small>
                               </div>
                             </div>
                           </div>
@@ -636,38 +655,34 @@
         <h3 class="mb-4">You might also like</h3>
         <div class="row" id="related-products">
           <!-- Show 3 random products from the same category or different categories -->
-          {% set related_products = [] %}
+          {% set ns = namespace(count=0) %}
           {% for p in products if p.id != product.id %}
-            {% if related_products|length < 3 %}
-              {% set _ = related_products.append(p) %}
-            {% endif %}
-          {% endfor %}
-          {% for related_product in related_products %}
-          <div class="col-md-4 mb-4">
-            <div class="card h-100 product-card clickable-card" onclick="window.location.href='{{ url_for('product.product_detail', product_id=related_product.id) }}'" style="cursor: pointer; transition: transform 0.2s;">
-              <img src="http://localhost:5000/api/products/{{ related_product.id }}/thumbnail" class="card-img-top" alt="{{ related_product.name }}" style="height: 200px; object-fit: cover;"
-                   onerror="this.src='{{ url_for('static', filename='images/' + related_product.image) }}'">
-              <div class="card-body d-flex flex-column">
-                <div class="mb-2">
-                  {% if related_product.is_popular %}
-                    <span class="badge bg-warning me-1 small">Popular</span>
-                  {% elif related_product.is_new %}
-                    <span class="badge bg-success me-1 small">New</span>
-                  {% elif related_product.is_on_sale %}
-                    <span class="badge bg-danger me-1 small">Sale</span>
-                  {% endif %}
-                </div>
-                <h6 class="card-title">{{ related_product.name }}</h6>
-                <p class="card-text text-muted small flex-grow-1">{{ related_product.description[:70] }}...</p>
-                <div class="mt-auto">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold text-success">${{ "%.2f"|format(related_product.price) }}</span>
-                    <a href="{{ url_for('product.product_detail', product_id=related_product.id) }}" class="btn btn-sm btn-outline-success" onclick="event.stopPropagation();">View Details</a>
+            {% if ns.count < 4 %}
+              {% set ns.count = ns.count + 1 %}
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100 product-card clickable-card" 
+                     onclick="window.location.href='{{ url_for('product.product_detail', product_id=p.id) }}'" 
+                     style="cursor: pointer; border-radius: 18px; overflow: hidden; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.06); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: white;">
+                  <div class="position-relative overflow-hidden" style="height: 220px;">
+                    <img src="{{ p.image_urls.card }}" class="card-img-top w-100 h-100" alt="{{ p.name }}" 
+                         style="object-fit: cover; transition: transform 0.6s ease;">
+                  </div>
+                  <div class="card-body d-flex flex-column p-3">
+                    <div class="mb-2">
+                      <span class="badge bg-light text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size: 0.75rem;">{{ p.category|title if p.category else 'Plant' }}</span>
+                    </div>
+                    <h6 class="card-title fw-bold mb-1 text-truncate">{{ p.name }}</h6>
+                    <p class="card-text text-muted x-small flex-grow-1 mb-3" style="font-size: 0.8rem; height: 38px; overflow: hidden; line-height: 1.4;">{{ p.description[:60] }}...</p>
+                    <div class="mt-auto pt-2 border-top">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-success" style="font-size: 1.1rem;">${{ "%.2f"|format(p.price) }}</span>
+                        <div class="btn btn-sm btn-success rounded-pill px-3 py-1" style="font-size: 0.8rem;">View</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            {% endif %}
           {% endfor %}
         </div>
       </div>
@@ -966,9 +981,38 @@
   </main>
 
   <!-- Footer -->
-  {% include 'components/footer.html' %}
+  {% include "frontside/components/footer.html" %}
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- SweetAlert2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    /* Ensure SweetAlert toast renders above the fixed navbar (z-index 1030) */
+    .swal2-container { z-index: 99999 !important; }
+  </style>
+  <script>
+    function showSiteAlert(type, message, options = {}) {
+      if (typeof Swal === 'undefined') {
+        alert(message);
+        return;
+      }
+      const config = {
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: options.timer || 3000,
+        timerProgressBar: true,
+        icon: type,
+        title: message,
+        ...options
+      };
+      return Swal.fire(config);
+    }
+  </script>
+  <!-- Axios for robust AJAX requests -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <!-- Add to Cart Handler - Modern implementation with fallbacks -->
+  <script src="{{ url_for('static', filename='main/frontside/js/add-to-cart-handler.js') }}"></script>
   <script>
     // Enhanced Product data lookup
     const productData = {
@@ -1454,7 +1498,7 @@
       // Update basic product info
       document.getElementById('product-title').textContent = product.name;
       document.getElementById('product-price').textContent = product.price;
-      document.getElementById('product-img').src = `http://localhost:5000/api/products/${pid}/image`;
+      document.getElementById('product-img').src = product.image_url || product.image;
       document.getElementById('product-img').alt = product.name;
       document.getElementById('product-desc').textContent = product.desc;
       document.getElementById('breadcrumb-product').textContent = product.name;
@@ -1508,7 +1552,7 @@
       addToCartBtn.setAttribute('data-product-id', pid);
       addToCartBtn.setAttribute('data-product-name', product.name);
       addToCartBtn.setAttribute('data-product-price', product.price.replace('$', ''));
-      addToCartBtn.setAttribute('data-product-image', `http://localhost:5000/api/products/${pid}/thumbnail`);
+      addToCartBtn.setAttribute('data-product-image', product.image_url);
       
       // Update share URL
       document.getElementById('shareUrl').value = window.location.href;
@@ -1545,7 +1589,7 @@
         return `
           <div class="col-md-4 mb-4">
             <div class="card h-100 product-card clickable-card" onclick="window.location.href='product_detail.html?product=${id}'" style="cursor: pointer; transition: transform 0.2s;">
-              <img src="http://localhost:5000/api/products/${id}/thumbnail" class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;" onerror="this.src='${product.image}'">
+              <img src="${product.image_url}" class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
               <div class="card-body d-flex flex-column">
                 <div class="mb-2">
                   ${product.badges ? product.badges.slice(0, 1).map(badge => `<span class="badge bg-success me-1 small">${badge}</span>`).join('') : ''}
@@ -1572,7 +1616,8 @@
     // Quantity controls
     document.getElementById('increase-qty').addEventListener('click', function() {
       const qtyInput = document.getElementById('quantity');
-      const currentQty = parseInt(qtyInput.value);
+      let currentQty = parseInt(qtyInput.value) || 1;
+      if (currentQty < 1 || isNaN(currentQty)) currentQty = 1;
       if (currentQty < 10) {
         qtyInput.value = currentQty + 1;
       }
@@ -1580,68 +1625,73 @@
 
     document.getElementById('decrease-qty').addEventListener('click', function() {
       const qtyInput = document.getElementById('quantity');
-      const currentQty = parseInt(qtyInput.value);
+      let currentQty = parseInt(qtyInput.value) || 1;
+      if (currentQty < 1 || isNaN(currentQty)) currentQty = 1;
       if (currentQty > 1) {
         qtyInput.value = currentQty - 1;
       }
     });
 
-    // Wishlist functionality
-    document.getElementById('wishlist-btn').addEventListener('click', function() {
-      const heartIcon = this.querySelector('i');
-      if (heartIcon.classList.contains('far')) {
-        heartIcon.classList.remove('far');
-        heartIcon.classList.add('fas');
-        this.classList.add('btn-danger');
-        this.classList.remove('btn-outline-danger');
-        this.title = 'Remove from Wishlist';
-      } else {
-        heartIcon.classList.remove('fas');
-        heartIcon.classList.add('far');
-        this.classList.remove('btn-danger');
-        this.classList.add('btn-outline-danger');
-        this.title = 'Add to Wishlist';
+    // Validate quantity input on direct edit
+    document.getElementById('quantity').addEventListener('change', function() {
+      let value = parseInt(this.value) || 1;
+      if (value < 1) {
+        this.value = 1;
+      } else if (value > 10) {
+        this.value = 10;
       }
     });
 
-    // Enhanced Add to cart functionality
-    document.getElementById('add-to-cart').addEventListener('click', function() {
-      const quantity = parseInt(document.getElementById('quantity').value);
+    // Wishlist functionality
+    document.getElementById('wishlist-btn').addEventListener('click', function() {
+      const button = this;
       const productData = {
-        id: this.getAttribute('data-product-id'),
-        name: this.getAttribute('data-product-name'),
-        price: parseFloat(this.getAttribute('data-product-price')),
-        image: this.getAttribute('data-product-image')
+        product_id: button.getAttribute('data-product-id'),
+        product_name: button.getAttribute('data-product-name'),
+        product_price: parseFloat(button.getAttribute('data-product-price')),
+        product_image: button.getAttribute('data-product-image')
       };
       
-      // Get cart from localStorage
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      button.disabled = true;
       
-      const existingItem = cart.find(item => item.id === productData.id);
-      
-      if (existingItem) {
-        existingItem.quantity += quantity;
-      } else {
-        cart.push({ ...productData, quantity: quantity });
-      }
-      
-      // Save to localStorage
-      localStorage.setItem('cart', JSON.stringify(cart));
-      
-      // Update cart badge
-      updateCartBadge(cart);
-      
-      // Show success animation
-      this.innerHTML = '<i class="fas fa-check me-2"></i>Added to Cart!';
-      this.classList.add('btn-success');
-      this.disabled = true;
-      
-      setTimeout(() => {
-        this.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Add to Cart';
-        this.classList.remove('btn-success');
-        this.disabled = false;
-      }, 2000);
+      fetch('/add-to-wishlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData)
+      })
+      .then(response => {
+        if (response.status === 401) {
+          return response.json().then(data => {
+            const loginUrl = data.redirect || '/login';
+            window.location.href = loginUrl;
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data && data.success) {
+          const heartIcon = button.querySelector('i');
+          heartIcon.classList.remove('far');
+          heartIcon.classList.add('fas');
+          button.classList.add('btn-danger');
+          button.classList.remove('btn-outline-danger');
+          button.title = 'In Wishlist';
+        } else if (data && !data.success) {
+          showSiteAlert('error', data.message || 'Unable to add this item to your wishlist.');
+          button.disabled = false;
+        }
+      })
+      .catch(error => {
+        console.error('Error adding to wishlist:', error);
+        showSiteAlert('error', 'Error adding to wishlist. Please try again.');
+        button.disabled = false;
+      });
     });
+
+    // Enhanced Add to cart functionality - REPLACED by add-to-cart-handler.js
+    // See: static/main/frontside/js/add-to-cart-handler.js for modern implementation
 
     // Share functionality
     function shareOnFacebook() {
@@ -1687,19 +1737,26 @@
       }
     }
 
-    // Initialize cart badge on page load
+    // Initialize cart badge and add-to-cart handler on page load
     document.addEventListener('DOMContentLoaded', function() {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      updateCartBadge(cart);
+      console.log('✅ Product Detail Page Loaded');
+      
+      // Initialize Add-to-Cart Handler from Flask
+      if (typeof AddToCartHandler !== 'undefined') {
+        window.addToCartHandler = new AddToCartHandler();
+        console.log('✅ Add-to-Cart handler initialized successfully');
+      } else {
+        console.error('❌ AddToCartHandler class not found - ensure add-to-cart-handler.js is loaded');
+      }
     });
 
     // Also update on page visibility change (when user returns from cart)
     document.addEventListener('visibilitychange', function() {
       if (!document.hidden) {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        updateCartBadge(cart);
+        console.log('📱 Page visibility changed - cart may have been updated');
       }
     });
   </script>
 </body>
 </html>
+

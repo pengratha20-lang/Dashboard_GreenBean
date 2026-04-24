@@ -1,19 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/product.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/shop-layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/product.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/shop-layout.css') }}">
     <style>
         .checkout-main {
             min-height: 100vh;
             background: #f8f9fa;
             padding-top: 32px;
         }
+
+        /* Ensure proper row layout */
+        .checkout-main .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-left: -0.75rem;
+            margin-right: -0.75rem;
+        }
+
+        .checkout-main .row > [class*="col-"] {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        /* Two-column layout on large screens */
+        @media (min-width: 992px) {
+            .checkout-main .col-12.col-lg-8 {
+                flex: 0 0 66.66666667%;
+                max-width: 66.66666667%;
+            }
+
+            .checkout-main .col-12.col-lg-4 {
+                flex: 0 0 33.33333333%;
+                max-width: 33.33333333%;
+            }
+        }
+
+        /* Stack on smaller screens */
+        @media (max-width: 991px) {
+            .checkout-main .col-12.col-lg-8,
+            .checkout-main .col-12.col-lg-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
         .checkout-step {
             background: white;
             border-radius: 12px;
@@ -21,96 +58,267 @@
             padding: 2rem;
             margin-bottom: 2rem;
         }
+
         .step-header {
             border-bottom: 2px solid #28a745;
             padding-bottom: 1rem;
             margin-bottom: 1.5rem;
         }
+
         .form-group {
             margin-bottom: 1rem;
         }
+
         .order-item {
             padding: 1rem;
             border-bottom: 1px solid #dee2e6;
         }
+
         .order-item:last-child {
             border-bottom: none;
         }
-        .payment-methods {
+
+        /* Payment Method Selection Buttons */
+        .payment-methods-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
-        .payment-option {
+
+        .payment-method-btn {
             border: 2px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: white;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
-        .payment-option:hover {
+
+        .payment-method-btn:hover {
+            transform: translateY(-3px);
             border-color: #28a745;
-            background-color: #f8f9fa;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
         }
-        .payment-option.selected {
+
+        .payment-method-btn.active {
             border-color: #28a745;
-            background-color: #d4edda;
+            background-color: rgba(40, 167, 69, 0.1);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3);
         }
+
+        .payment-method-btn i {
+            display: block;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #28a745;
+        }
+
+        /* Card Payment Form - Hidden by default */
+        .card-payment-form {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .card-payment-form.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Fade-out effect for form sections */
+        .form-faded {
+            opacity: 0.4;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .form-unfaded {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Bakong QR Modal */
+        .bakong-qr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bakong-qr-modal.show {
+            display: flex;
+        }
+
+        .bakong-qr-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .bakong-qr-header {
+            background: linear-gradient(135deg, #4bbb17, #3a9012);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            margin: -2rem -2rem 1.5rem -2rem;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .qr-code-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-code-container img {
+            max-width: 100%;
+            max-height: 300px;
+        }
+
+        .bakong-timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+            margin: 1rem 0;
+        }
+
+        .bakong-timer.warning {
+            color: #ff9800;
+        }
+
+        .bakong-timer.danger {
+            color: #dc3545;
+        }
+
+        .bakong-price {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #28a745;
+            margin: 1.5rem 0;
+        }
+
+        .bakong-status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+
+        .bakong-status.checking {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .bakong-status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .bakong-status.timeout {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
         .checkout-summary {
             background: white;
             border-radius: 12px;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             padding: 2rem;
             position: sticky;
-            top: 140px;
+            top: 160px;
+            height: fit-content;
+            width: 100%;
+        }
+
+        @media (max-width: 1200px) {
+            .checkout-summary {
+                top: 140px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .checkout-summary {
+                position: relative;
+                top: auto;
+                margin-top: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .payment-methods-section {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <header class="shop-header fixed-top">
         <div class="container-fluid">
             <nav class="navbar navbar-expand-lg navbar-light py-3">
                 <div class="container-fluid">
-                    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home.home') }}" id="brand-logo">
+                    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home.home') }}">
                         <i class="fas fa-leaf me-2 text-success"></i>
                         <span>Green Bean</span>
                     </a>
-
                     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false"
-                        aria-label="Toggle navigation">
+                        data-bs-target="#navbarContent">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-
                     <div class="collapse navbar-collapse" id="navbarContent">
                         <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" href="{{ url_for('home.home') }}">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" href="{{ url_for('shop.shop') }}">Shop</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" href="{{ url_for('home.home') }}#services">Services</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" href="{{ url_for('home.home') }}#about">About</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" href="{{ url_for('contact.contact') }}">Contact</a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link fw-semibold"
+                                    href="{{ url_for('home.home') }}">Home</a></li>
+                            <li class="nav-item"><a class="nav-link fw-semibold"
+                                    href="{{ url_for('shop.shop') }}">Shop</a></li>
+                            <li class="nav-item"><a class="nav-link fw-semibold"
+                                    href="{{ url_for('home.home') }}#services">Services</a></li>
+                            <li class="nav-item"><a class="nav-link fw-semibold"
+                                    href="{{ url_for('home.home') }}#about">About</a></li>
+                            <li class="nav-item"><a class="nav-link fw-semibold"
+                                    href="{{ url_for('contact.contact') }}">Contact</a></li>
                         </ul>
-
                         <div class="d-flex align-items-center gap-3">
-                            <!-- Cart Button -->
                             <a href="{{ url_for('cart.cart') }}" class="btn btn-success position-relative">
                                 <i class="fas fa-shopping-cart"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-badge">
-                                    0
-                                    <span class="visually-hidden">items in cart</span>
-                                </span>
+                                <span
+                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                    id="cart-badge">0</span>
                             </a>
                         </div>
                     </div>
@@ -132,136 +340,205 @@
                         </ol>
                     </nav>
                     <h1 class="display-4 fw-bold text-dark mb-2">Secure Checkout</h1>
-                    <p class="lead text-muted">Complete your order with our secure payment system</p>
+                    <p class="lead text-muted">Complete your order</p>
                 </div>
             </div>
 
-            <div class="row">
-                <!-- Checkout Form -->
-                <div class="col-lg-8">
+            <div class="row g-4">
+                <!-- LEFT: Checkout Form (8 columns) -->
+                <div class="col-12 col-lg-8">
                     <form id="checkout-form" method="POST" action="{{ url_for('checkout.process_checkout') }}">
-                        <!-- Customer Information -->
+                        <!-- Hidden fields -->
+                        <input type="hidden" id="payment-method-hidden" name="payment_method" value="">
+                        <input type="hidden" id="currency-input" name="currency" value="USD">
+
+                        <!-- PAYMENT METHOD SELECTION - MOVED TO TOP -->
                         <div class="checkout-step">
+                            <h4 class="mb-4"><i class="fas fa-credit-card text-success me-2"></i>Choose Payment Method</h4>
+                            
+                            <div class="payment-methods-section">
+                                <!-- CARD PAYMENT BUTTON -->
+                                <button type="button" class="payment-method-btn" id="card-payment-btn"
+                                    onclick="selectPaymentMethod('credit_card')">
+                                    <i class="fas fa-credit-card"></i>
+                                    <div>Pay with Card</div>
+                                    <small class="text-muted d-block mt-2">Visa, Mastercard, AMEX</small>
+                                </button>
+
+                                <!-- BAKONG PAYMENT BUTTON -->
+                                <button type="button" class="payment-method-btn" id="bakong-payment-btn"
+                                    onclick="selectPaymentMethod('bakong')">
+                                    <i class="fas fa-qrcode"></i>
+                                    <div>Pay with Bakong</div>
+                                    <small class="text-muted d-block mt-2">Scan QR Code</small>
+                                </button>
+                            </div>
+
+                            <p class="text-muted mt-3"><i class="fas fa-info-circle me-2"></i><strong>Please select your payment method before proceeding.</strong></p>
+                        </div>
+
+                        <!-- Customer Information -->
+                        <div class="checkout-step form-unfaded" id="form-content">
                             <div class="step-header">
                                 <h4><i class="fas fa-user text-success me-2"></i>Customer Information</h4>
                             </div>
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-12">
                                     <div class="form-group">
-                                        <label for="first_name" class="form-label">First Name *</label>
-                                        <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                        <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="name" name="name">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="last_name" class="form-label">Last Name *</label>
-                                        <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                        <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="email" name="email">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="email" class="form-label">Email Address *</label>
-                                        <input type="email" class="form-control" id="email" name="email" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="phone" class="form-label">Phone Number</label>
-                                        <input type="tel" class="form-control" id="phone" name="phone">
+                                        <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="phone" name="phone">
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Shipping Information -->
-                        <div class="checkout-step">
+                        <div class="checkout-step form-unfaded" id="shipping-content">
                             <div class="step-header">
-                                <h4><i class="fas fa-truck text-success me-2"></i>Shipping Address</h4>
+                                <h4><i class="fas fa-truck text-success me-2"></i>Shipping Address & Delivery Method</h4>
                             </div>
                             <div class="row">
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label for="street_address" class="form-label">Street Address *</label>
-                                        <input type="text" class="form-control" id="street_address" name="street_address" required>
+                                        <label for="address" class="form-label">Full Address <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="address"
+                                            name="address" placeholder="Street address and building number">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="city" class="form-label">City *</label>
-                                        <input type="text" class="form-control" id="city" name="city" required>
+                                        <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="city" name="city">
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="state" class="form-label">State *</label>
-                                        <select class="form-control" id="state" name="state" required>
-                                            <option value="">Select State</option>
-                                            <option value="AL">Alabama</option>
-                                            <option value="CA">California</option>
-                                            <option value="FL">Florida</option>
-                                            <option value="NY">New York</option>
-                                            <option value="TX">Texas</option>
-                                            <!-- Add more states as needed -->
-                                        </select>
+                                        <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="country" name="country">
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="zip_code" class="form-label">ZIP Code *</label>
-                                        <input type="text" class="form-control" id="zip_code" name="zip_code" required>
+                            </div>
+
+                            <!-- Shipping Method Selection -->
+                            <div class="mt-4">
+                                <label class="form-label fw-bold">Delivery Method *</label>
+                                <div class="shipping-options">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="shipping"
+                                            id="shipping-vireakbunthan-pp" value="vireakbunthan-pp" checked>
+                                        <label class="form-check-label" for="shipping-vireakbunthan-pp">
+                                            <strong>Vireakbunthan - Phnom Penh</strong><br>
+                                            <small class="text-muted">2-3 days • $2.50</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="shipping"
+                                            id="shipping-vireakbunthan-prov" value="vireakbunthan-prov">
+                                        <label class="form-check-label" for="shipping-vireakbunthan-prov">
+                                            <strong>Vireakbunthan - Provinces</strong><br>
+                                            <small class="text-muted">5-7 days • $5.00</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="shipping"
+                                            id="shipping-jnt-pp" value="jnt-pp">
+                                        <label class="form-check-label" for="shipping-jnt-pp">
+                                            <strong>J&T Express - Phnom Penh</strong><br>
+                                            <small class="text-muted">1-2 days • $3.00</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="shipping"
+                                            id="shipping-jnt-prov" value="jnt-prov">
+                                        <label class="form-check-label" for="shipping-jnt-prov">
+                                            <strong>J&T Express - Provinces</strong><br>
+                                            <small class="text-muted">3-5 days • $6.00</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="shipping"
+                                            id="shipping-test" value="test">
+                                        <label class="form-check-label" for="shipping-test">
+                                            <strong>🧪 Test Delivery (Free)</strong><br>
+                                            <small class="text-muted">For testing QR payment only • FREE</small>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Payment Method -->
-                        <div class="checkout-step">
-                            <div class="step-header">
-                                <h4><i class="fas fa-credit-card text-success me-2"></i>Payment Method</h4>
-                            </div>
-                            <div class="payment-methods">
-                                <div class="payment-option selected" data-method="stripe">
-                                    <i class="fas fa-credit-card fs-1 text-primary mb-2"></i>
-                                    <h6>Card via Stripe</h6>
-                                    <small class="text-muted">Secure payment handled by Stripe</small>
-                                    <input type="radio" name="payment_method" value="stripe" checked style="display: none;">
+                        <!-- CARD PAYMENT FORM -->
+                        <div class="card-payment-form form-unfaded" id="card-payment-form">
+                                <h5 class="mb-4">Card Information</h5>
+                                <div class="form-group">
+                                    <label for="card_name" class="form-label">Cardholder Name *</label>
+                                    <input type="text" class="form-control" id="card_name" name="card_name">
                                 </div>
-                                <div class="payment-option" data-method="bakong" style="opacity: 0.5; cursor: not-allowed;">
-                                    <i class="fas fa-qrcode fs-1 text-success mb-2"></i>
-                                    <h6>Bakong KHQR (Coming Soon)</h6>
-                                    <small class="text-muted">Will be enabled after Bakong setup</small>
-                                    <input type="radio" name="payment_method" value="bakong" disabled style="display: none;">
+                                <div class="form-group">
+                                    <label for="card_number" class="form-label">Card Number *</label>
+                                    <input type="text" class="form-control" id="card_number" name="card_number"
+                                        placeholder="1234 5678 9012 3456">
                                 </div>
-                            </div>
-
-                            <!-- Note: Card details are handled securely on Stripe's hosted page -->
-                        </div>
-
-                        <!-- Place Order Button -->
-                        <div class="checkout-step">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <a href="{{ url_for('cart.cart') }}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-arrow-left me-2"></i>Back to Cart
-                                </a>
-                                <button type="submit" class="btn btn-success btn-lg" id="place-order-btn">
-                                    <i class="fas fa-lock me-2"></i>Place Order Securely
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="card_expiry" class="form-label">Expiry Date *</label>
+                                            <input type="text" class="form-control" id="card_expiry" name="card_expiry"
+                                                placeholder="MM/YY">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="card_cvv" class="form-label">CVV *</label>
+                                            <input type="text" class="form-control" id="card_cvv" name="card_cvv"
+                                                placeholder="123">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100 btn-lg mt-3">
+                                    <i class="fas fa-lock me-2"></i>Place Order with Card
                                 </button>
                             </div>
+
+                        <!-- BAKONG PAYMENT - Place Order Button -->
+                        <div class="checkout-step" id="bakong-submit-section" style="display: none;">
+                            <p class="text-muted mb-3"><i class="fas fa-info-circle me-2"></i>After clicking "Place
+                                Order", a QR code will appear for you to scan with Bakong.</p>
+                            <button type="submit" class="btn btn-success w-100 btn-lg">
+                                <i class="fas fa-check me-2"></i>Place Order with Bakong
+                            </button>
+                        </div>
+
+                        <!-- Back to Cart -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('cart.cart') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                            </a>
                         </div>
                     </form>
                 </div>
 
-                <!-- Order Summary -->
-                <div class="col-lg-4">
+                <!-- RIGHT: Order Summary -->
+                <div class="col-12 col-lg-4">
                     <div class="checkout-summary">
                         <h4 class="mb-3"><i class="fas fa-receipt me-2 text-success"></i>Order Summary</h4>
-                        
-                        <!-- Order Items -->
+
                         <div class="order-items mb-4">
                             {% for item in cart_items %}
                             <div class="order-item">
                                 <div class="d-flex align-items-center">
-                                    <img src="{{ item.image }}" alt="{{ item.name }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
                                     <div class="flex-grow-1">
                                         <h6 class="mb-1">{{ item.name }}</h6>
                                         <small class="text-muted">Qty: {{ item.quantity }}</small>
@@ -274,44 +551,40 @@
                             {% endfor %}
                         </div>
 
-                        <!-- Order Totals -->
                         <div class="order-totals">
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Subtotal ({{ order_summary.items_count }} items):</span>
-                                <span>${{ "%.2f"|format(order_summary.subtotal) }}</span>
+                                <span>Subtotal:</span>
+                                <span id="subtotal-amount">${{ "%.2f"|format(order_summary.subtotal) }}</span>
                             </div>
-                            {% if order_summary.discount and order_summary.discount > 0 %}
+
+                            <!-- Coupon Code Section -->
+                            <div class="mb-3">
+                                <label for="coupon-code" class="form-label fw-bold">Have a Coupon? <span class="text-muted">(Optional)</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="coupon-code" placeholder="Enter coupon code"
+                                        autocomplete="off">
+                                    <button class="btn btn-outline-success" type="button" id="apply-coupon-btn">Apply</button>
+                                </div>
+                                <small id="coupon-message" class="d-block mt-2"></small>
+                            </div>
+
+                            {% if order_summary.discount > 0 %}
                             <div class="d-flex justify-content-between mb-2 text-success">
-                                <span>Discount{% if applied_coupon %} ({{ applied_coupon.code }}){% endif %}:</span>
-                                <span>- ${{ "%.2f"|format(order_summary.discount) }}</span>
+                                <span>Discount:</span>
+                                <span id="discount-amount">-${{ "%.2f"|format(order_summary.discount) }}</span>
                             </div>
                             {% endif %}
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Shipping:</span>
-                                <span>
-                                    {% if order_summary.shipping_cost == 0 %}
-                                        <span class="text-success">Free</span>
-                                    {% else %}
-                                        ${{ "%.2f"|format(order_summary.shipping_cost) }}
-                                    {% endif %}
-                                </span>
-                            </div>
                             <div class="d-flex justify-content-between mb-3">
-                                <span>Tax:</span>
-                                <span>${{ "%.2f"|format(order_summary.tax_amount) }}</span>
+                                <span>Shipping:</span>
+                                <span id="shipping-amount">${{ "%.2f"|format(order_summary.shipping_cost) }}</span>
                             </div>
                             <hr>
-                            <div class="d-flex justify-content-between mb-3">
+                            <div class="d-flex justify-content-between">
                                 <strong>Total:</strong>
-                                <strong class="text-success fs-5">${{ "%.2f"|format(order_summary.total) }}</strong>
+                                <strong class="text-success fs-5" id="total-amount">${{
+                                    "%.2f"|format(order_summary.total) }}</strong>
                             </div>
-                        </div>
-
-                        <!-- Security Badge -->
-                        <div class="security-badge text-center p-3 bg-light rounded">
-                            <i class="fas fa-shield-alt text-success fs-3"></i>
-                            <h6 class="mt-2 mb-1">Secure Checkout</h6>
-                            <small class="text-muted">Your information is protected by 256-bit SSL encryption</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -319,88 +592,839 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    {% include 'components/footer.html' %}
+    <!-- BAKONG CONFIRMATION MODAL - Show before QR -->
+    <div class="modal fade" id="bakong-confirm-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>Confirm Your Order
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="order-confirmation-details">
+                        <h6 class="mb-3">Order Summary:</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Amount to Pay:</span>
+                            <span class="fw-bold text-success" id="confirm-total-amount">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Payment Method:</span>
+                            <span class="fw-bold">Bakong QR Code</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Currency:</span>
+                            <span class="fw-bold" id="confirm-currency">USD</span>
+                        </div>
+                        <hr>
+                        <div class="customer-info-confirm">
+                            <h6 class="mb-2">Customer Information:</h6>
+                            <div class="small text-muted">
+                                <p><strong>Name:</strong> <span id="confirm-name"></span></p>
+                                <p><strong>Email:</strong> <span id="confirm-email"></span></p>
+                                <p><strong>Phone:</strong> <span id="confirm-phone"></span></p>
+                                <p><strong>Address:</strong> <span id="confirm-address"></span></p>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            After confirming, you'll see a QR code to scan with Bakong.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-success" id="confirm-bakong-btn" onclick="proceedWithBakongQR()">
+                        <i class="fas fa-check me-2"></i>Confirm & Generate QR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- BAKONG QR CODE POPUP - Hidden by default -->
+    <div class="bakong-qr-modal" id="bakong-qr-modal">
+        <div class="bakong-qr-content">
+            <div class="bakong-qr-header">
+                <h5 class="mb-0"><i class="fas fa-qrcode me-2"></i>Scan to Pay with Bakong</h5>
+            </div>
+
+            <div class="qr-code-container" id="qr-code-container">
+                <div id="qr-code-image"></div>
+            </div>
+
+            <div class="bakong-price" id="bakong-total-price"></div>
+
+            <div class="bakong-timer" id="bakong-timer"></div>
+
+            <div class="bakong-status" id="bakong-status">
+                <i class="fas fa-info-circle me-2"></i>Waiting for payment confirmation...
+            </div>
+
+            <button class="btn btn-outline-danger w-100 mt-3" onclick="closeBakongModal()">
+                <i class="fas fa-times me-2"></i>Cancel Payment
+            </button>
+        </div>
+    </div>
+
+    {% include "frontside/components/footer.html" %}
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://js.stripe.com/v3/"></script>
+    <!-- SweetAlert2 for notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Payment method selection
-            const paymentOptions = document.querySelectorAll('.payment-option');
+        // ===== ALERT NOTIFICATION FUNCTION =====
+        function showSiteAlert(type, message, options = {}) {
+            if (typeof Swal === 'undefined') {
+                alert(message);
+                return Promise.resolve();
+            }
 
-            paymentOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    // Remove selected class from all options
-                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
-                    
-                    // Add selected class to clicked option
-                    this.classList.add('selected');
-                    
-                    // Update radio button
-                    const radio = this.querySelector('input[type="radio"]');
-                    radio.checked = true;
+            const isToast = options.toast === true;
+            const config = {
+                icon: type,
+                text: message,
+                confirmButtonColor: type === 'error' ? '#dc2626' : '#22a54a',
+                background: '#ffffff',
+                customClass: {
+                    popup: isToast ? '' : 'rounded-4'
+                },
+                ...options
+            };
+
+            if (isToast) {
+                config.toast = true;
+                config.position = options.position || 'top-end';
+                config.timer = options.timer || 2200;
+                config.timerProgressBar = true;
+                config.showConfirmButton = false;
+            } else {
+                config.title = options.title || (
+                    type === 'success' ? 'Success' :
+                    type === 'error' ? 'Error' :
+                    type === 'warning' ? 'Please Check' : 'Notice'
+                );
+            }
+
+            return Swal.fire(config);
+        }
+
+        let selectedPaymentMethod = null;
+        let bakongTimer = null;
+        let bakongCheckInterval = null; // Track polling interval
+        let bakongTimeLeft = 300; // 5 minutes in seconds
+        let totalAmount = {{ "%.2f"| format(order_summary.total) }};
+
+        // Store current Bakong order and transaction info
+        window.currentBakongOrder = null;
+        window.currentBakongTransaction = null;
+
+        // ===== SHIPPING COSTS MAPPING =====
+        const SHIPPING_COSTS = {
+            'vireakbunthan-pp': 2.50,
+            'vireakbunthan-prov': 5.00,
+            'jnt-pp': 3.00,
+            'jnt-prov': 6.00,
+            'test': 0.00
+        };
+
+        const SUBTOTAL = {{ "%.2f"| format(order_summary.subtotal) }};
+        const DISCOUNT = {{ "%.2f"| format(order_summary.discount) }};
+        const FREE_SHIPPING_THRESHOLD = 50.0;
+        const CUSTOMER_ID = {{ customer_id if customer_id else 'null' }};  // ✅ Get customer_id from backend
+
+        // Initialize customer info from logged-in user if available
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeCustomerInfo();
+            setupShippingListener();
+            
+            // Initialize shipping cost based on currently selected delivery method
+            const shippingRadios = document.querySelectorAll('input[name="shipping"]');
+            for (let radio of shippingRadios) {
+                if (radio.checked) {
+                    console.log('🚚 Initializing shipping cost for:', radio.value);
+                    updateOrderTotal(radio.value);
+                    break;
+                }
+            }
+        });
+
+        async function postJson(url, payload) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (error) {
+                data = { message: `Unexpected response from ${url}` };
+            }
+
+            if (!response.ok) {
+                const err = new Error(data.message || `Request failed: ${response.status}`);
+                err.response = { data, status: response.status };
+                throw err;
+            }
+
+            return data;
+        }
+
+        // ===== DYNAMIC SHIPPING COST UPDATE =====
+        function setupShippingListener() {
+            const shippingRadios = document.querySelectorAll('input[name="shipping"]');
+            
+            shippingRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    updateOrderTotal(this.value);
                 });
             });
+        }
 
-            // Form submission
-            const checkoutForm = document.getElementById('checkout-form');
-            const placeOrderBtn = document.getElementById('place-order-btn');
+        function updateOrderTotal(shippingMethod) {
+            const shippingCost = SHIPPING_COSTS[shippingMethod] || 0.00;  // Default to cheapest option
+            const subtotal = SUBTOTAL;
+            const discount = DISCOUNT;
+            
+            // Calculate new total: subtotal - discount + shipping
+            const newTotal = (subtotal - discount + shippingCost).toFixed(2);
+            
+            // Update shipping display
+            const shippingElement = document.getElementById('shipping-amount');
+            if (shippingElement) {
+                shippingElement.textContent = `$${shippingCost.toFixed(2)}`;
+            }
+            
+            // Update total display
+            const totalElement = document.getElementById('total-amount');
+            if (totalElement) {
+                totalElement.textContent = `$${newTotal}`;
+            }
+            
+            console.log(`📦 Shipping updated: ${shippingMethod} = $${shippingCost.toFixed(2)}, New Total: $${newTotal}`);
+        }
 
-            const stripePublicKey = "{{ stripe_pk }}";
-            const stripeInstance = stripePublicKey ? Stripe(stripePublicKey) : null;
-
-            checkoutForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const selectedMethodInput = document.querySelector('input[name="payment_method"]:checked');
-                const selectedMethod = selectedMethodInput ? selectedMethodInput.value : null;
-
-                if (selectedMethod === 'stripe') {
-                    if (!stripeInstance) {
-                        alert('Stripe is not configured. Please set STRIPE_PUBLISHABLE_KEY on the server.');
+        // ===== COUPON CODE HANDLER =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const applyCouponBtn = document.getElementById('apply-coupon-btn');
+            const couponInput = document.getElementById('coupon-code');
+            
+            if (applyCouponBtn && couponInput) {
+                applyCouponBtn.addEventListener('click', async function() {
+                    const couponCode = couponInput.value.trim();
+                    
+                    if (!couponCode) {
+                        showSiteAlert('warning', 'Please enter a coupon code');
                         return;
                     }
+                    
+                    await applyCoupon(couponCode);
+                });
+                
+                // Allow Enter key to apply coupon
+                couponInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        applyCouponBtn.click();
+                    }
+                });
+            }
+        });
 
-                    placeOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Redirecting to Stripe...';
-                    placeOrderBtn.disabled = true;
-
-                    const emailInput = document.getElementById('email');
-                    const emailValue = emailInput ? emailInput.value : '';
-
-                    fetch("{{ url_for('checkout.create_checkout_session') }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ email: emailValue })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.id) {
-                            return stripeInstance.redirectToCheckout({ sessionId: data.id });
+        async function applyCoupon(couponCode) {
+            try {
+                console.log('🎟️ Applying coupon:', couponCode);
+                
+                // ✅ Validate coupon code format
+                if (!couponCode || couponCode.trim().length === 0) {
+                    showSiteAlert('warning', 'Please enter a coupon code');
+                    const couponMessage = document.getElementById('coupon-message');
+                    if (couponMessage) {
+                        couponMessage.innerHTML = '<i class="fas fa-info-circle me-2"></i>Coupon code is required';
+                        couponMessage.className = 'text-warning';
+                    }
+                    return;
+                }
+                
+                // Check if customer is logged in (CUSTOMER_ID will be null for guests)
+                if (!CUSTOMER_ID) {
+                    showSiteAlert('warning', '🔐 Please log in to apply coupons');
+                    const couponMessage = document.getElementById('coupon-message');
+                    if (couponMessage) {
+                        couponMessage.innerHTML = '<i class="fas fa-lock me-2"></i>Sign in to your account to use coupons';
+                        couponMessage.className = 'text-warning';
+                    }
+                    return;
+                }
+                
+                const response = await postJson('/api/apply-coupon', {
+                    coupon_code: couponCode,
+                    customer_id: CUSTOMER_ID,
+                    subtotal: SUBTOTAL
+                });
+                
+                if (response.success) {
+                    showSiteAlert('success', `✅ Coupon Applied! Saving $${response.discount_amount}`);
+                    
+                    // Update discount display
+                    const discountElement = document.getElementById('discount-amount');
+                    if (discountElement) {
+                        discountElement.textContent = `-$${parseFloat(response.discount_amount).toFixed(2)}`;
+                        discountElement.parentElement.style.display = 'flex';
+                    }
+                    
+                    // Recalculate total with new discount
+                    const subtotal = SUBTOTAL;
+                    const newDiscount = parseFloat(response.discount_amount);
+                    const shippingRadios = document.querySelectorAll('input[name="shipping"]');
+                    let currentShipping = 9.99;
+                    
+                    for (let radio of shippingRadios) {
+                        if (radio.checked) {
+                            currentShipping = SHIPPING_COSTS[radio.value] || 9.99;
+                            break;
                         }
-                        throw new Error(data.error || 'Unable to start Stripe checkout.');
-                    })
-                    .then(result => {
-                        if (result && result.error) {
-                            alert(result.error.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Stripe checkout error:', error);
-                        alert('Error starting payment. Please try again.');
-                    })
-                    .finally(() => {
-                        placeOrderBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Place Order Securely';
-                        placeOrderBtn.disabled = false;
-                    });
+                    }
+                    
+                    const newTotal = (subtotal - newDiscount + currentShipping).toFixed(2);
+                    
+                    const totalElement = document.getElementById('total-amount');
+                    if (totalElement) {
+                        totalElement.textContent = `$${newTotal}`;
+                    }
+                    
+                    // Disable further coupon changes
+                    document.getElementById('coupon-code').disabled = true;
+                    document.getElementById('apply-coupon-btn').disabled = true;
+                    
+                    const couponMessage = document.getElementById('coupon-message');
+                    if (couponMessage) {
+                        couponMessage.innerHTML = `<i class="fas fa-check-circle me-2"></i>✅ Coupon "${couponCode}" applied (locked for this order)`;
+                        couponMessage.className = 'text-success';
+                    }
                 } else {
-                    // Fallback to server-side order processing (non-Stripe methods)
-                    checkoutForm.submit();
+                    // ✅ Enhanced error handling with specific messages
+                    const errorMessage = response.message || 'Invalid coupon code';
+                    let alertTitle = '❌ Coupon Error';
+                    let displayMessage = errorMessage;
+                    
+                    // Customize error messages based on the reason
+                    if (errorMessage.toLowerCase().includes('expired')) {
+                        alertTitle = '⏰ Coupon Expired';
+                        displayMessage = 'This coupon has expired. Please try another one.';
+                    } else if (errorMessage.toLowerCase().includes('invalid')) {
+                        alertTitle = '❌ Invalid Coupon';
+                        displayMessage = 'This coupon code is invalid. Please check and try again.';
+                    } else if (errorMessage.toLowerCase().includes('maximum total usage')) {
+                        alertTitle = '📊 Coupon Limit Reached';
+                        displayMessage = 'This coupon has reached its maximum usage limit.';
+                    } else if (errorMessage.toLowerCase().includes('maximum') && errorMessage.toLowerCase().includes('per customer')) {
+                        alertTitle = '👤 Personal Limit Reached';
+                        displayMessage = errorMessage;
+                    } else if (errorMessage.toLowerCase().includes('minimum purchase')) {
+                        alertTitle = '💰 Minimum Purchase Required';
+                        displayMessage = errorMessage;
+                    } else if (errorMessage.toLowerCase().includes('customer')) {
+                        alertTitle = '👤 Customer Error';
+                        displayMessage = 'Unable to verify customer information.';
+                    }
+                    
+                    showSiteAlert('error', `${alertTitle}: ${displayMessage}`);
+                    
+                    const couponMessage = document.getElementById('coupon-message');
+                    if (couponMessage) {
+                        couponMessage.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${displayMessage}`;
+                        couponMessage.className = 'text-danger';
+                    }
+                }
+            } catch (error) {
+                // ✅ Handle network/request errors
+                const errorMsg = error.message || 'Failed to apply coupon';
+                console.error('❌ Coupon error:', error);
+                
+                let alertMessage = errorMsg;
+                if (error.response && error.response.data && error.response.data.message) {
+                    alertMessage = error.response.data.message;
+                }
+                
+                showSiteAlert('error', `⚠️ Request Failed: ${alertMessage}`);
+                
+                const couponMessage = document.getElementById('coupon-message');
+                if (couponMessage) {
+                    couponMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${alertMessage || 'Failed to apply coupon'}`;
+                    couponMessage.className = 'text-danger';
+                }
+            }
+        }
+
+
+        function initializeCustomerInfo() {
+            // Pre-fill customer info if logged in (from backend)
+            const customerData = {
+                name: "{{ customer_info.get('name', '') }}",
+                email: "{{ customer_info.get('email', '') }}",
+                phone: "{{ customer_info.get('phone', '') }}",
+                address: "{{ customer_info.get('address', '') }}",
+                city: "{{ customer_info.get('city', '') }}",
+                country: "{{ customer_info.get('country', '') }}"
+            };
+
+            if (customerData.name) {
+                const elem = document.getElementById('name');
+                if (elem) elem.value = customerData.name;
+            }
+            if (customerData.email) {
+                const elem = document.getElementById('email');
+                if (elem) elem.value = customerData.email;
+            }
+            if (customerData.phone) {
+                const elem = document.getElementById('phone');
+                if (elem) elem.value = customerData.phone;
+            }
+            if (customerData.address) {
+                const elem = document.getElementById('address');
+                if (elem) elem.value = customerData.address;
+            }
+            if (customerData.city) {
+                const elem = document.getElementById('city');
+                if (elem) elem.value = customerData.city;
+            }
+            if (customerData.country) {
+                const elem = document.getElementById('country');
+                if (elem) elem.value = customerData.country;
+            }
+
+            if (customerData.name || customerData.email) {
+                console.log('👤 Customer info pre-filled from account');
+            }
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            document.getElementById('payment-method-hidden').value = method;
+
+            // Update button styling
+            document.getElementById('card-payment-btn').classList.remove('active');
+            document.getElementById('bakong-payment-btn').classList.remove('active');
+
+            // Get form content elements
+            const formContent = document.getElementById('form-content');
+            const shippingContent = document.getElementById('shipping-content');
+            const cardPaymentForm = document.getElementById('card-payment-form');
+
+            if (method === 'credit_card') {
+                document.getElementById('card-payment-btn').classList.add('active');
+                document.getElementById('card-payment-form').classList.add('show');
+                document.getElementById('bakong-submit-section').style.display = 'none';
+                
+                // Fade in form content
+                formContent.classList.remove('form-faded');
+                formContent.classList.add('form-unfaded');
+                shippingContent.classList.remove('form-faded');
+                shippingContent.classList.add('form-unfaded');
+                cardPaymentForm.classList.remove('form-faded');
+                cardPaymentForm.classList.add('form-unfaded');
+                
+                console.log('💳 Card payment selected');
+            } else if (method === 'bakong') {
+                document.getElementById('bakong-payment-btn').classList.add('active');
+                document.getElementById('card-payment-form').classList.remove('show');
+                document.getElementById('bakong-submit-section').style.display = 'block';
+                
+                // Keep form content visible for Bakong too
+                formContent.classList.remove('form-faded');
+                formContent.classList.add('form-unfaded');
+                shippingContent.classList.remove('form-faded');
+                shippingContent.classList.add('form-unfaded');
+                cardPaymentForm.classList.remove('form-unfaded');
+                cardPaymentForm.classList.add('form-faded');
+                
+                console.log('📱 Bakong payment selected');
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('checkout-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            if (!selectedPaymentMethod) {
+                showSiteAlert('warning', 'Please select a payment method first.');
+                return;
+            }
+
+            // Validate required fields manually
+            const requiredFields = [
+                { id: 'name', name: 'Full Name' },
+                { id: 'email', name: 'Email Address' },
+                { id: 'phone', name: 'Phone Number' },
+                { id: 'address', name: 'Full Address' },
+                { id: 'city', name: 'City' },
+                { id: 'country', name: 'Country' }
+            ];
+            
+            let hasErrors = false;
+            let errorMessage = 'Please fill in the following fields: ';
+            let missingFields = [];
+            
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field.id);
+                if (!input || !input.value.trim()) {
+                    missingFields.push(field.name);
+                    hasErrors = true;
                 }
             });
+            
+            if (hasErrors) {
+                showSiteAlert('warning', errorMessage + missingFields.join(', '));
+                return;
+            }
+
+            if (selectedPaymentMethod === 'bakong') {
+                // For Bakong: Create order first, then show confirmation
+                console.log('📱 Creating order for Bakong payment...');
+                await createBakongOrder();
+            } else {
+                // For Card: Submit form directly to Flask endpoint
+                console.log('💳 Submitting form to Flask for card payment...');
+                this.submit();
+            }
         });
+
+        async function createBakongOrder() {
+            try {
+                console.log('📋 Creating Bakong order via /api/create-order...');
+                
+                // Get selected shipping method
+                const shippingRadios = document.querySelectorAll('input[name="shipping"]');
+                let selectedShipping = null;
+                for (let radio of shippingRadios) {
+                    if (radio.checked) {
+                        selectedShipping = radio.value;
+                        break;
+                    }
+                }
+                
+                const orderData = {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    address: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    country: document.getElementById('country').value,
+                    payment_method: 'bakong',
+                    currency: document.getElementById('currency-input').value || 'USD',
+                    include_shipping: true,
+                    shipping: selectedShipping
+                };
+
+                const response = await postJson('/api/create-order', orderData);
+
+                if (!response.success) {
+                    showSiteAlert('error', response.message || 'Failed to create order');
+                    return;
+                }
+
+                console.log('✅ Order created:', response.order_number);
+                
+                // Store order info for QR generation
+                window.currentBakongOrder = {
+                    id: response.order_id,
+                    number: response.order_number,
+                    amount: response.amount,
+                    currency: response.currency
+                };
+
+                // Show confirmation modal
+                showBakongQRPopup();
+            } catch (error) {
+                console.error('Error creating Bakong order:', error);
+                showSiteAlert('error', error.message || 'Failed to create order');
+            }
+        }
+
+        async function showBakongQRPopup() {
+            // Show confirmation modal instead of directly showing QR
+            console.log('📋 Showing Bakong confirmation modal...');
+            
+            // Pre-fill the confirmation modal with customer info
+            const confirmModal = new bootstrap.Modal(document.getElementById('bakong-confirm-modal'));
+            
+            // Fill in confirmation details
+            document.getElementById('confirm-total-amount').textContent = `$${totalAmount.toFixed(2)}`;
+            document.getElementById('confirm-currency').textContent = document.getElementById('currency-input').value || 'USD';
+            document.getElementById('confirm-name').textContent = document.getElementById('name').value || 'Not provided';
+            document.getElementById('confirm-email').textContent = document.getElementById('email').value || 'Not provided';
+            document.getElementById('confirm-phone').textContent = document.getElementById('phone').value || 'Not provided';
+            document.getElementById('confirm-address').textContent = document.getElementById('address').value + ', ' + document.getElementById('city').value + ', ' + document.getElementById('country').value || 'Not provided';
+            
+            // Show the modal
+            confirmModal.show();
+        }
+
+        async function proceedWithBakongQR() {
+            console.log('✅ Proceeding with Bakong QR generation...');
+            
+            // Hide confirmation modal
+            const confirmModal = bootstrap.Modal.getInstance(document.getElementById('bakong-confirm-modal'));
+            if (confirmModal) {
+                confirmModal.hide();
+            }
+            
+            // Now show the actual QR code
+            setTimeout(() => {
+                showBakongQRCode();
+            }, 300);
+        }
+
+        async function showBakongQRCode() {
+            // IMPORTANT: Clear any old requests/timers FIRST
+            clearOldBakongRequests();
+
+            // Reset timer
+            bakongTimeLeft = 300;
+
+            // Show modal
+            document.getElementById('bakong-qr-modal').classList.add('show');
+
+            // Show total price
+            document.getElementById('bakong-total-price').textContent = `Total: $${totalAmount.toFixed(2)}`;
+
+            // Update status to "generating..."
+            updateBakongStatus('checking', 'Generating QR code...');
+
+            // Generate QR code via backend API
+            const qrGenerated = await generateBakongQR();
+            if (!qrGenerated) {
+                return;
+            }
+
+            // Start timer
+            startBakongTimer();
+
+            // Start checking payment status (3 second interval)
+            checkBakongPaymentStatus();
+        }
+
+        function clearOldBakongRequests() {
+            // Clear old timer
+            if (bakongTimer) {
+                clearInterval(bakongTimer);
+                bakongTimer = null;
+            }
+
+            // Clear old polling interval
+            if (bakongCheckInterval) {
+                clearInterval(bakongCheckInterval);
+                bakongCheckInterval = null;
+            }
+
+            console.log('🧹 Cleared old Bakong timers and requests');
+        }
+
+        async function generateBakongQR() {
+            const qrContainer = document.getElementById('qr-code-image');
+            qrContainer.innerHTML = '';
+
+            try {
+                // Use the order that was already created in createBakongOrder()
+                if (!window.currentBakongOrder) {
+                    throw new Error('Order not found. Please try again.');
+                }
+
+                console.log('📱 Generating QR code for order:', window.currentBakongOrder.number);
+
+                const orderId = window.currentBakongOrder.id;
+                const totalAmount = window.currentBakongOrder.amount;
+
+                // Call backend to generate QR code
+                const qrResponse = await postJson('/api/bakong/generate-qr', {
+                    order_id: orderId,
+                    amount: totalAmount,
+                    khqr_mode: 'dynamic'  // Use dynamic mode so amount matches order total
+                });
+
+                if (!qrResponse.success) {
+                    throw new Error(qrResponse.message || 'Failed to generate QR code');
+                }
+
+                const transactionId = qrResponse.transaction_id;
+                const qrPayload = qrResponse.qr_payload;
+                const md5Hash = qrResponse.md5_hash;  // Get MD5 from backend response
+                
+                console.log('✅ QR generated successfully | Transaction ID:', transactionId);
+                console.log('📋 QR Payload length:', qrPayload.length);
+                console.log('🔐 MD5 Hash:', md5Hash);
+
+                // Display the QR code image
+                document.getElementById('bakong-total-price').textContent = `Total: $${Number(totalAmount).toFixed(2)}`;
+                qrContainer.innerHTML = `<img src="${qrResponse.qr_code_data_url}" alt="Bakong QR Code" class="img-fluid" style="max-width: 300px;" />`;
+
+                console.log('✅ QR code displayed');
+                
+                // Store transaction ID and MD5 hash for verification
+                window.currentBakongTransaction = transactionId;
+                window.currentBakongMD5 = md5Hash;
+                
+                updateBakongStatus('checking', 'Waiting for payment confirmation...');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ QR generation error:', error);
+                
+                const errorMsg = error.response?.data?.message || error.message;
+                qrContainer.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>Error: ' + errorMsg + '</div>';
+                updateBakongStatus('timeout', 'Error: ' + errorMsg);
+                return false;
+            }
+        }
+
+        function startBakongTimer() {
+            const timerElement = document.getElementById('bakong-timer');
+
+            // Clear old timer if exists
+            if (bakongTimer) clearInterval(bakongTimer);
+
+            bakongTimer = setInterval(() => {
+                bakongTimeLeft--;
+
+                const minutes = Math.floor(bakongTimeLeft / 60);
+                const seconds = bakongTimeLeft % 60;
+                const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                timerElement.textContent = ` ${timeStr}`;
+
+                // Color change based on time
+                if (bakongTimeLeft > 120) {
+                    timerElement.classList.remove('warning', 'danger');
+                } else if (bakongTimeLeft > 60) {
+                    timerElement.classList.remove('danger');
+                    timerElement.classList.add('warning');
+                } else {
+                    timerElement.classList.add('danger');
+                }
+
+                // Time's up
+                if (bakongTimeLeft <= 0) {
+                    clearInterval(bakongTimer);
+                    if (bakongCheckInterval) clearInterval(bakongCheckInterval);
+                    updateBakongStatus('timeout', 'Payment timeout! Request cleared.');
+                    disableBakongModal();
+                }
+            }, 1000);
+        }
+
+        function checkBakongPaymentStatus() {
+            let pollCount = 0;
+            const maxPolls = 100; // 100 checks * 3 seconds = 300 seconds (5 minutes)
+
+            // Clear old interval if exists
+            if (bakongCheckInterval) clearInterval(bakongCheckInterval);
+
+            bakongCheckInterval = setInterval(async () => {
+                pollCount++;
+
+                // Stop polling if timer is up or max polls reached
+                if (bakongTimeLeft <= 0 || pollCount > maxPolls) {
+                    clearInterval(bakongCheckInterval);
+                    bakongCheckInterval = null;
+                    return;
+                }
+
+                try {
+                    // Call backend to verify payment WITH MD5 hash
+                    const md5Value = window.currentBakongMD5 || 'NOT_PROVIDED';
+                    console.log(`📱 Poll #${pollCount} - Checking payment... MD5: ${md5Value.substring(0, 12)}...`);
+
+                    const response = await postJson('/api/bakong/verify-payment', {
+                        order_id: window.currentBakongOrder.id,
+                        transaction_id: window.currentBakongTransaction,
+                        md5_hash: window.currentBakongMD5,  // Send MD5 hash directly
+                        status: 'pending'
+                    });
+
+                    console.log(`📊 Poll #${pollCount} Response:`, response);
+
+                    if (response && response.success !== undefined) {
+                        if (response.status === 'success') {
+                            clearInterval(bakongCheckInterval);
+                            bakongCheckInterval = null;
+                            updateBakongStatus('success', '✅ Payment confirmed! Order completed.');
+                            clearInterval(bakongTimer);
+
+                            console.log('✅✅✅ PAYMENT SUCCESSFUL! Redirecting...');
+                            
+                            // Show success alert
+                            showSiteAlert('success', `✅ Payment Successful! Order #${response.order_number || window.currentBakongOrder.number} has been confirmed.`, {
+                                duration: 5000
+                            });
+                            
+                            // Redirect to order confirmation
+                            setTimeout(() => {
+                                window.location.href = `/order-confirmation/${window.currentBakongOrder.id}`;
+                            }, 2000);
+                        } else if (response.status === 'failed') {
+                            clearInterval(bakongCheckInterval);
+                            bakongCheckInterval = null;
+                            updateBakongStatus('timeout', '❌ Payment failed. Please try again.');
+                            
+                            console.log('❌ PAYMENT FAILED');
+                            // Show error alert
+                            showSiteAlert('error', '❌ Payment failed. Your order was not completed. Please try again.', {
+                                duration: 5000
+                            });
+                        } else {
+                            console.log(`⏳ Still pending... (Poll #${pollCount})`);
+                        }
+                    } else {
+                        console.log(`⚠️ Invalid response format on poll #${pollCount}`);
+                    }
+                } catch (error) {
+                    console.log(`⏳ Poll #${pollCount}: Error -`, error.message);
+                    // Continue polling on error - payment might not be confirmed yet
+                }
+            }, 3000); // Check every 3 seconds
+        }
+
+        function updateBakongStatus(status, message) {
+            const statusElement = document.getElementById('bakong-status');
+
+            statusElement.classList.remove('checking', 'success', 'timeout');
+            statusElement.classList.add(status);
+
+            if (status === 'success') {
+                statusElement.innerHTML = `<i class="fas fa-check-circle me-2"></i>${message}`;
+            } else if (status === 'timeout') {
+                statusElement.innerHTML = `<i class="fas fa-times-circle me-2"></i>${message}`;
+            } else {
+                statusElement.innerHTML = `<i class="fas fa-info-circle me-2"></i>${message}`;
+            }
+        }
+
+        function closeBakongModal() {
+            // Clear timers when closing
+            clearOldBakongRequests();
+            
+            document.getElementById('bakong-qr-modal').classList.remove('show');
+            console.log('❌ Bakong payment cancelled');
+        }
+
+        function disableBakongModal() {
+            const modal = document.getElementById('bakong-qr-modal');
+            const cmdButton = modal.querySelector('button');
+            cmdButton.disabled = true;
+            cmdButton.innerHTML = '<i class="fas fa-clock me-2"></i>Payment Expired';
+        }
+
+        console.log('✅ Checkout page loaded');
     </script>
 </body>
+
 </html>

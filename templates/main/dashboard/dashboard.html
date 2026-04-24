@@ -1,0 +1,432 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Executive Overview - Green Bean Smart Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .welcome-banner-premium {
+        background: var(--grad-primary);
+        border-radius: var(--border-radius);
+        padding: 40px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 40px;
+        box-shadow: 0 20px 40px rgba(34, 165, 74, 0.2);
+    }
+
+    .welcome-banner-premium::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .banner-date-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+
+    .banner-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .banner-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 600px;
+    }
+
+    .banner-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .banner-meta-pill {
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 0.86rem;
+        font-weight: 700;
+    }
+
+    .stat-grid-premium {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 25px;
+        margin-bottom: 45px;
+    }
+
+    .stat-card-glass {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        border-radius: 24px;
+        padding: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card-glass:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+    }
+
+    .stat-val-premium {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 5px;
+    }
+
+    .stat-label-p {
+        color: #64748b;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .quick-launch-bar {
+        background: white;
+        padding: 12px;
+        border-radius: 20px;
+        display: flex;
+        gap: 12px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 45px;
+        border: 1px solid #f1f5f9;
+        overflow-x: auto;
+    }
+
+    .launch-btn {
+        padding: 10px 20px;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        font-weight: 800;
+        font-size: 0.85rem;
+        text-decoration: none !important;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s;
+    }
+
+    .launch-btn:hover {
+        background: white;
+        color: var(--primary);
+        border-color: var(--primary);
+        box-shadow: 0 5px 15px rgba(34, 165, 74, 0.1);
+    }
+
+    .dashboard-main-grid {
+        display: grid;
+        grid-template-columns: 1.8fr 1.2fr;
+        gap: 30px;
+    }
+
+    @media (max-width: 1200px) {
+        .dashboard-main-grid { grid-template-columns: 1fr; }
+    }
+
+    .glass-inner-card {
+        background: white;
+        border-radius: 24px;
+        padding: 25px;
+        border: 1px solid #f1f5f9;
+        box-shadow: var(--card-shadow);
+        height: 100%;
+    }
+
+    .card-header-premium {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .card-title-premium {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pulse-live {
+        width: 8px;
+        height: 8px;
+        background: #22c55e;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 rgba(34, 197, 94, 0.4);
+        animation: pulse 2s infinite;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="banner-date-badge">
+    <i class="far fa-calendar-alt me-2"></i> <span id="currentDate">October 20, 2024</span>
+</div>
+
+<div class="welcome-banner-premium">
+    <h1 class="banner-title">Hello, Green Bean Admin</h1>
+    <p class="banner-subtitle">
+        This week your store recorded <span class="fw-bold">{{ dashboard_analytics.stats.orders }}</span> completed orders,
+        <span class="fw-bold">{{ dashboard_analytics.stats.revenue }}</span> in revenue,
+        and an average basket of <span class="fw-bold">{{ dashboard_analytics.stats.avg_order }}</span>.
+    </p>
+    <div class="banner-meta-row">
+        <div class="banner-meta-pill">Revenue change: {{ dashboard_analytics.stats.revenue_change }}%</div>
+        <div class="banner-meta-pill">New customers: {{ dashboard_analytics.stats.customers }}</div>
+        <div class="banner-meta-pill">Updated {{ dashboard_analytics.last_updated }}</div>
+    </div>
+</div>
+
+<div class="quick-launch-bar">
+    <a href="{{ url_for('order_module.orders_route') }}" class="launch-btn"><i class="fas fa-plus"></i> New Order</a>
+    <a href="{{ url_for('product_module.add_product') }}" class="launch-btn"><i class="fas fa-box"></i> Add Product</a>
+    <a href="{{ url_for('customer_module.customers_route') }}" class="launch-btn"><i class="fas fa-user-plus"></i> New Customer</a>
+    <a href="{{ url_for('discount_module.discounts_route') }}" class="launch-btn"><i class="fas fa-tag"></i> Create Code</a>
+    <a href="{{ url_for('analytics_module.analytics_route') }}" class="launch-btn ms-auto"><i class="fas fa-chart-line"></i> Deep Analysis</a>
+</div>
+
+<div class="stat-grid-premium">
+    <div class="stat-card-glass">
+        <div class="stat-icon-wrapper bg-soft-green text-green"><i class="fas fa-shopping-bag"></i></div>
+        <div class="stat-val-premium" id="totalOrdersStat">{{ stats.total_orders }}</div>
+        <div class="stat-label-p">Completed Orders</div>
+    </div>
+    <div class="stat-card-glass">
+        <div class="stat-icon-wrapper bg-soft-blue text-blue"><i class="fas fa-wallet"></i></div>
+        <div class="stat-val-premium" id="totalRevenueStat">{{ stats.total_revenue }}</div>
+        <div class="stat-label-p">Store Revenue</div>
+    </div>
+    <div class="stat-card-glass">
+        <div class="stat-icon-wrapper bg-soft-indigo text-indigo"><i class="fas fa-users"></i></div>
+        <div class="stat-val-premium" id="totalUsersStat">{{ stats.active_customers }}</div>
+        <div class="stat-label-p">Active Clients</div>
+    </div>
+    <div class="stat-card-glass">
+        <div class="stat-icon-wrapper bg-soft-purple text-purple"><i class="fas fa-cubes"></i></div>
+        <div class="stat-val-premium" id="totalProductsStat">{{ stats.products_in_stock }}</div>
+        <div class="stat-label-p">Items In Stock</div>
+    </div>
+</div>
+
+<div class="dashboard-main-grid">
+    <div class="glass-inner-card">
+        <div class="card-header-premium">
+            <h4 class="card-title-premium"><i class="fas fa-chart-area me-2"></i> Performance Metrics</h4>
+            <div class="text-muted small fw-bold"><span class="pulse-live"></span>Real-time Stream</div>
+        </div>
+        <canvas id="salesChart" style="max-height: 400px;"></canvas>
+    </div>
+
+    <div class="glass-inner-card">
+        <div class="card-header-premium">
+            <h4 class="card-title-premium"><i class="fas fa-clock-rotate-left me-2"></i> Latest Transactions</h4>
+            <a href="{{ url_for('order_module.orders_route') }}" class="text-green small text-decoration-none fw-bold">View History</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-0 small fw-bold text-uppercase opacity-50">Client</th>
+                        <th class="small fw-bold text-uppercase opacity-50 text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="recentOrdersBody">
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td class="ps-0">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-sm-premium">{{ order.avatar_letter }}</div>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold small text-dark">{{ order.customer }}</span>
+                                            <span class="text-muted x-small">ID #{{ order.id }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-end fw-bold text-dark">{{ order.amount }}</td>
+                            </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center py-5 text-muted opacity-50 small">
+    &copy; <span id="footerYear">{{ dashboard_analytics.last_updated[-4:] }}</span> Green Bean Smart Systems. Intelligent Commerce Platform.
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const initialChartData = {{ chart_data | tojson }};
+
+    // Set Current Date
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-US', options);
+
+    let salesChartInstance = null;
+    const greenPalette = {
+        primary: '#22a54a',
+        primarySoft: 'rgba(34, 165, 74, 0.1)',
+        secondary: '#1aa179',
+        secondarySoft: 'rgba(26, 161, 121, 0.1)'
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchDashboardData();
+        initPerformanceChart();
+        // Live refresh every 15s
+        setInterval(fetchDashboardData, 15000);
+    });
+
+    function fetchDashboardData() {
+        fetch('{{ url_for("admin.get_dashboard_stats_api") }}')
+            .then(res => res.json())
+            .then(data => {
+                // Update Numeric Stats
+                document.getElementById('totalOrdersStat').innerText = data.stats.total_orders;
+                document.getElementById('totalRevenueStat').innerText = data.stats.total_revenue;
+                document.getElementById('totalUsersStat').innerText = data.stats.active_customers;
+                document.getElementById('totalProductsStat').innerText = data.stats.products_in_stock;
+
+                if (data.analytics && data.analytics.stats) {
+                    const subtitle = document.querySelector('.banner-subtitle');
+                    const pills = document.querySelectorAll('.banner-meta-pill');
+                    if (subtitle) {
+                        subtitle.innerHTML = `This week your store recorded <span class="fw-bold">${data.analytics.stats.orders}</span> completed orders, <span class="fw-bold">${data.analytics.stats.revenue}</span> in revenue, and an average basket of <span class="fw-bold">${data.analytics.stats.avg_order}</span>.`;
+                    }
+                    if (pills.length >= 3) {
+                        pills[0].innerText = `Revenue change: ${data.analytics.stats.revenue_change}%`;
+                        pills[1].innerText = `New customers: ${data.analytics.stats.customers}`;
+                        pills[2].innerText = `Updated ${data.analytics.last_updated}`;
+                    }
+                    if (salesChartInstance && data.analytics.chart_data) {
+                        salesChartInstance.data.labels = data.analytics.chart_data.labels || [];
+                        salesChartInstance.data.datasets[0].data = data.analytics.chart_data.revenue || [];
+                        salesChartInstance.update();
+                    }
+                }
+
+                // Sync Recent Transactions
+                const list = document.getElementById('recentOrdersBody');
+                list.innerHTML = data.recent_orders.map(o => `
+                    <tr>
+                        <td class="ps-0">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-sm-premium">${o.avatar_letter}</div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold small text-dark">${o.customer}</span>
+                                    <span class="text-muted x-small">ID #${o.id}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-end fw-bold text-dark">${o.amount}</td>
+                    </tr>
+                `).join('');
+            });
+    }
+
+    function initPerformanceChart() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: initialChartData.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Revenue Growth',
+                    data: initialChartData.revenue || [0, 0, 0, 0, 0, 0, 0],
+                    borderColor: greenPalette.primary,
+                    backgroundColor: greenPalette.primarySoft,
+                    borderWidth: 4,
+                    fill: true,
+                    tension: 0.45,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: greenPalette.primary,
+                    pointBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleFont: { size: 14, weight: 'bold' },
+                        padding: 12,
+                        cornerRadius: 10,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { weight: 'bold' } } },
+                    y: {
+                        grid: { color: '#f1f5f9' },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: { weight: 'bold' },
+                            callback: (val) => '$' + val
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    document.getElementById('footerYear').innerText = new Date().getFullYear();
+</script>
+{% endblock %}

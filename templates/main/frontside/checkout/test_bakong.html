@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Bakong Payment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light p-4">
+    <div class="container">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Test Bakong Payment - Simple Test</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    This page uses a static KHQR test flow first. For testing, it creates a no-shipping order so the
+                    total stays exactly at <strong>$1.00</strong>.
+                </div>
+
+                <div class="card border-primary mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">ABA Scan Check</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            The generated test QR below uses the current Bakong config from this app. Your real NBC QR
+                            deeplink is also shown here so you can test the exact merchant QR separately in ABA.
+                        </p>
+                        <div><strong>Bakong Account ID:</strong> {{ bakong_account_id or 'Not configured' }}</div>
+                        <div><strong>Merchant Name:</strong> {{ bakong_merchant_name or 'Not configured' }}</div>
+                        <div><strong>Merchant City:</strong> {{ bakong_merchant_city or 'Not configured' }}</div>
+                        {% if bakong_reference_deeplink %}
+                        <div class="mt-3">
+                            <strong>Reference NBC Deeplink:</strong><br>
+                            <a href="{{ bakong_reference_deeplink }}" target="_blank" rel="noopener noreferrer">
+                                {{ bakong_reference_deeplink }}
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning mt-3 mb-0">
+                            No reference NBC deeplink configured yet. Add <code>BAKONG_TEST_DEEPLINK_URL</code> or open
+                            this page with <code>?deeplink=...</code>.
+                        </div>
+                        {% endif %}
+                        {% if bakong_sample_payload %}
+                        <div class="mt-3">
+                            <div class="fw-bold mb-1">Sample Static KHQR Payload ($1.00)</div>
+                            <code style="word-break: break-all;">{{ bakong_sample_payload }}</code>
+                        </div>
+                        {% elif bakong_sample_error %}
+                        <div class="alert alert-danger mt-3 mb-0">
+                            Unable to build sample payload: {{ bakong_sample_error }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Step 1: Test Cart Sync</h5>
+                    <div class="mb-2">
+                        <label for="customAmount" class="form-label">Optional: Set Custom Amount</label>
+                        <div class="input-group" style="max-width: 200px;">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="customAmount" placeholder="0.01" step="0.01" min="0.01">
+                            <button class="btn btn-outline-secondary" onclick="setCustomAmount()">Set Amount</button>
+                        </div>
+                        <small class="text-muted d-block mt-1">Leave empty to use product price. Example: 0.01</small>
+                        <div id="amount-status" class="mt-2"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="testSyncCart()">Test Sync Cart</button>
+                    <div id="sync-result" class="mt-2"></div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Step 2: Test Create Order</h5>
+                    <button class="btn btn-primary" onclick="testCreateOrder()">Test Create Order</button>
+                    <div id="order-result" class="mt-2"></div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Step 3: Test Bakong QR Generation</h5>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" onclick="testGenerateQR('static')">Generate Static QR</button>
+                        <button class="btn btn-outline-primary" onclick="testGenerateQR('dynamic')">Generate Dynamic QR</button>
+                        <button class="btn btn-outline-secondary" onclick="testGenerateBothQRs()">Generate Both</button>
+                    </div>
+                    <div id="qr-result" class="mt-2"></div>
+                    <div id="qr-container" class="mt-3 row g-3"></div>
+                    <div id="payload-container" class="mt-3 row g-3"></div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Full Test (All Steps)</h5>
+                    <button class="btn btn-success btn-lg" onclick="testFullFlow()">Run Full Test</button>
+                    <div id="full-result" class="mt-2"></div>
+                </div>
+
+                <div class="mt-4">
+                    <h5>Console Output</h5>
+                    <pre id="console-output" class="bg-dark text-light p-3" style="max-height: 400px; overflow-y: auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const originalLog = console.log;
+        const originalError = console.error;
+        const consoleOutput = document.getElementById('console-output');
+
+        // Test Configuration
+        const TEST_PRODUCT_ID = 12;  // $0.01 Bakong test product
+
+        let testOrderId = null;
+        let testAmount = null;
+        let customAmount = null;  // Custom amount for testing
+
+        function stringifyLogArg(arg) {
+            if (typeof arg === 'object' && arg !== null) {
+                try {
+                    return JSON.stringify(arg, null, 2);
+                } catch (error) {
+                    return String(arg);
+                }
+            }
+            return String(arg);
+        }
+
+        function appendConsoleLine(prefix, args) {
+            const message = `${prefix}${args.map(stringifyLogArg).join(' ')}`;
+            consoleOutput.textContent += message + '\n';
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        console.log = function (...args) {
+            appendConsoleLine('', args);
+            originalLog(...args);
+        };
+
+        console.error = function (...args) {
+            appendConsoleLine('ERROR: ', args);
+            originalError(...args);
+        };
+
+        async function postJson(url, payload) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (error) {
+                data = { message: `Unexpected response from ${url}` };
+            }
+
+            if (!response.ok) {
+                const err = new Error(data.message || `Request failed: ${response.status}`);
+                err.response = { data, status: response.status };
+                throw err;
+            }
+
+            return data;
+        }
+
+        function setCustomAmount() {
+            const amountInput = document.getElementById('customAmount');
+            const amount = parseFloat(amountInput.value);
+            
+            if (!amountInput.value) {
+                customAmount = null;
+                document.getElementById('amount-status').innerHTML = '<div class="alert alert-info">Custom amount cleared. Will use product price.</div>';
+                return;
+            }
+            
+            if (isNaN(amount) || amount < 0.01) {
+                document.getElementById('amount-status').innerHTML = '<div class="alert alert-warning">Invalid amount. Minimum is $0.01</div>';
+                return;
+            }
+            
+            customAmount = amount;
+            document.getElementById('amount-status').innerHTML = `<div class="alert alert-success">✓ Custom amount set to $${amount.toFixed(2)}</div>`;
+            console.log(`Custom amount set to $${amount.toFixed(2)}`);
+        }
+
+        async function testSyncCart() {
+            console.log('\n=== TEST 1: Sync Cart ===');
+
+            try {
+                // Use the fixed $0.01 test product (ID=12)
+                const product = {
+                    id: TEST_PRODUCT_ID,
+                    name: 'TEST - $0.01 for Bakong',
+                    price: 0.01,
+                    image: null,
+                    description: 'Test product for Bakong testing'
+                };
+                
+                console.log('✓ Using fixed test product:', product);
+
+                // Build cart with test product
+                const testCart = [
+                    {
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,  // Always $0.01
+                        quantity: 1,
+                        image: product.image,
+                        description: product.description,
+                        category: 'Test',
+                        inStock: true
+                    }
+                ];
+
+                localStorage.setItem('cart', JSON.stringify(testCart));
+                console.log('✓ Cart stored with $0.01 test product:', testCart);
+
+                // Sync cart to server
+                const response = await postJson('/sync-cart', {
+                    cart_items: testCart,
+                    coupon_code: null
+                });
+
+                console.log('✓ Sync successful:', response);
+                document.getElementById('sync-result').innerHTML =
+                    `<div class="alert alert-success">✓ Cart synced with $0.01 test product</div>`;
+                return true;
+            } catch (error) {
+                console.error('Sync failed:', error.response?.data || error.message);
+                document.getElementById('sync-result').innerHTML =
+                    `<div class="alert alert-danger">Error: ${error.response?.data?.message || error.message}</div>`;
+                return false;
+            }
+        }
+
+        async function testCreateOrder() {
+            console.log('\n=== TEST 2: Create Order ===');
+
+            try {
+                // Create order with $0.01 test product
+                const response = await postJson('/api/create-order', {
+                    name: 'Test User',
+                    email: 'test@example.com',
+                    phone: '012345678',
+                    address: 'Test Address',
+                    city: 'Test City',
+                    country: 'Cambodia',
+                    payment_method: 'bakong',
+                    currency: 'USD',
+                    include_shipping: false
+                });
+
+                testOrderId = response.order_id;
+                testAmount = Number(response.amount);
+
+                console.log('✓ Order created:', response);
+                document.getElementById('order-result').innerHTML =
+                    `<div class="alert alert-success">✓ Order created for $${testAmount.toFixed(2)} | Order ID: ${response.order_id}</div>`;
+                return true;
+            } catch (error) {
+                console.error('Order creation failed:', error.response?.data || error.message);
+                document.getElementById('order-result').innerHTML =
+                    `<div class="alert alert-danger">Error: ${error.response?.data?.message || error.message}</div>`;
+                return false;
+            }
+        }
+
+        function renderQrCard(response) {
+            return `
+                <div class="col-md-6">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <div class="badge ${response.khqr_mode === 'static' ? 'bg-success' : 'bg-warning text-dark'} mb-3">
+                                ${response.khqr_mode.toUpperCase()}
+                            </div>
+                            <img src="${response.qr_code_data_url}" alt="Bakong ${response.khqr_mode} QR Code" class="img-fluid mb-3">
+                            <div><strong>Transaction ID:</strong> ${response.transaction_id}</div>
+                            <div><strong>Amount:</strong> $${Number(response.amount).toFixed(2)}</div>
+                            <div><strong>Currency:</strong> ${response.currency}</div>
+                            <div><strong>Mode:</strong> ${response.khqr_mode}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPayloadCard(response) {
+            return `
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-start">
+                            <div class="fw-bold mb-2">${response.khqr_mode.toUpperCase()} KHQR Payload</div>
+                            <code style="word-break: break-all;">${response.qr_payload}</code>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function requestQr(mode) {
+            const response = await postJson('/api/bakong/generate-qr', {
+                order_id: testOrderId,
+                amount: testAmount,
+                khqr_mode: mode
+            });
+
+            console.log(`${mode.toUpperCase()} QR generated:`, response);
+            return response;
+        }
+
+        async function testGenerateQR(mode = 'static') {
+            console.log(`\n=== TEST 3: Generate ${mode.toUpperCase()} QR Code ===`);
+
+            try {
+                if (!testOrderId || !testAmount) {
+                    throw new Error('Order ID or amount not set. Run Test 2 first.');
+                }
+
+                const response = await requestQr(mode);
+                document.getElementById('qr-container').innerHTML = renderQrCard(response);
+                document.getElementById('payload-container').innerHTML = renderPayloadCard(response);
+
+                document.getElementById('qr-result').innerHTML =
+                    `<div class="alert alert-success">${response.khqr_mode.toUpperCase()} QR generated. Transaction ID: ${response.transaction_id}</div>`;
+                return true;
+            } catch (error) {
+                console.error('QR generation failed:', error.response?.data || error.message);
+                document.getElementById('qr-result').innerHTML =
+                    `<div class="alert alert-danger">Error: ${error.response?.data?.message || error.message}</div>`;
+                return false;
+            }
+        }
+
+        async function testGenerateBothQRs() {
+            console.log('\n=== TEST 3: Generate STATIC and DYNAMIC QR Codes ===');
+
+            try {
+                if (!testOrderId || !testAmount) {
+                    throw new Error('Order ID or amount not set. Run Test 2 first.');
+                }
+
+                const [staticResponse, dynamicResponse] = await Promise.all([
+                    requestQr('static'),
+                    requestQr('dynamic')
+                ]);
+
+                document.getElementById('qr-container').innerHTML =
+                    renderQrCard(staticResponse) + renderQrCard(dynamicResponse);
+                document.getElementById('payload-container').innerHTML =
+                    renderPayloadCard(staticResponse) + renderPayloadCard(dynamicResponse);
+
+                document.getElementById('qr-result').innerHTML =
+                    '<div class="alert alert-success">Static and dynamic QRs generated. Try scanning both with ABA and compare the result.</div>';
+                return true;
+            } catch (error) {
+                console.error('Dual QR generation failed:', error.response?.data || error.message);
+                document.getElementById('qr-result').innerHTML =
+                    `<div class="alert alert-danger">Error: ${error.response?.data?.message || error.message}</div>`;
+                return false;
+            }
+        }
+
+        async function testFullFlow() {
+            console.log('\n\n========================================');
+            console.log('STARTING FULL BAKONG PAYMENT TEST');
+            console.log('========================================\n');
+
+            document.getElementById('full-result').innerHTML =
+                '<div class="spinner-border text-primary"></div> Testing...';
+
+            const step1 = await testSyncCart();
+            if (!step1) {
+                document.getElementById('full-result').innerHTML =
+                    '<div class="alert alert-danger"><strong>FAILED</strong> Step 1 did not complete.</div>';
+                return;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            const step2 = await testCreateOrder();
+            if (!step2) {
+                document.getElementById('full-result').innerHTML =
+                    '<div class="alert alert-danger"><strong>FAILED</strong> Step 2 did not complete.</div>';
+                return;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            const step3 = await testGenerateBothQRs();
+            if (!step3) {
+                document.getElementById('full-result').innerHTML =
+                    '<div class="alert alert-danger"><strong>FAILED</strong> Step 3 did not complete.</div>';
+                return;
+            }
+
+            console.log('\nALL TESTS PASSED. Static and dynamic Bakong QR comparison is ready.');
+            document.getElementById('full-result').innerHTML =
+                '<div class="alert alert-success"><strong>SUCCESS</strong> All steps completed. Static and dynamic QR codes are ready for ABA scan comparison.</div>';
+        }
+
+        console.log('Test page loaded. Click the buttons to run each step or use "Run Full Test".');
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "frontside/base.html" %}
 
 {% block content %}
 <div class="container mt-5 pt-5">
@@ -8,29 +8,29 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title text-success mb-4">
-                        <i class="fas fa-user-circle me-2"></i>Account
+                        <i class="fas fa-user-circle me-2 fs-4"></i>Account
                     </h5>
                     <ul class="list-unstyled">
                         <li class="mb-2">
-                            <a href="{{ url_for('auth.profile') }}" class="text-decoration-none text-dark">
-                                <i class="fas fa-user me-2 text-success"></i>My Profile
+                            <a href="{{ url_for('customer_auth.profile') }}" class="text-decoration-none text-dark">
+                                <i class="fas fa-user me-2 text-success fs-4"></i>My Profile
                             </a>
                         </li>
                         <li class="mb-2">
                             <a href="{{ url_for('wishlist.view_wishlist') }}" class="text-decoration-none text-dark fw-bold">
-                                <i class="fas fa-heart me-2 text-success"></i>My Wishlist
+                                <i class="fas fa-heart me-2 text-danger fs-4"></i>My Wishlist
                             </a>
                         </li>
                         <li class="mb-2">
                             <a href="{{ url_for('orders.my_orders') }}" class="text-decoration-none text-dark">
-                                <i class="fas fa-box me-2 text-success"></i>My Orders
+                                <i class="fas fa-box me-2 text-success fs-4"></i>My Orders
                             </a>
                         </li>
                         <li class="mb-2">
                             <hr>
                         </li>
                         <li>
-                            <a href="{{ url_for('auth.logout') }}" class="text-decoration-none text-danger">
+                            <a href="{{ url_for('customer_auth.logout') }}" class="text-decoration-none text-danger">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
                             </a>
                         </li>
@@ -42,58 +42,114 @@
         <!-- Main Content -->
         <div class="col-md-9">
             <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white p-4 border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-heart me-2 text-danger fs-4"></i>My Wishlist
+                        </h3>
+                        {% if wishlist_items %}
+                        <span class="badge bg-success fs-6">{{ wishlist_items|length }} items</span>
+                        {% endif %}
+                    </div>
+                </div>
                 <div class="card-body p-5">
-                    <h3 class="card-title mb-4">
-                        <i class="fas fa-heart me-2 text-danger"></i>My Wishlist
-                    </h3>
-                    
                     {% if wishlist_items %}
+                    <!-- Wishlist Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h6 class="text-muted mb-1">Total Items</h6>
+                                <h3 class="text-success mb-0">{{ wishlist_items|length }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h6 class="text-muted mb-1">Lowest Price</h6>
+                                <h3 class="text-success mb-0">${{ "%.2f"|format(wishlist_items|map(attribute='product_price')|min) }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h6 class="text-muted mb-1">Highest Price</h6>
+                                <h3 class="text-success mb-0">${{ "%.2f"|format(wishlist_items|map(attribute='product_price')|max) }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h6 class="text-muted mb-1">Total Value</h6>
+                                <h3 class="text-success mb-0">${{ "%.2f"|format(wishlist_items|map(attribute='product_price')|sum) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mb-4">
+                        <button type="button" class="btn btn-success" onclick="addAllToCart()">
+                            <i class="fas fa-shopping-cart me-2"></i>Add All to Cart
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" onclick="clearWishlist()">
+                            <i class="fas fa-trash-alt me-2"></i>Clear Wishlist
+                        </button>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Product</th>
-                                    <th>Price</th>
-                                    <th>Added On</th>
-                                    <th>Action</th>
+                                    <th style="width: 40%;">Product</th>
+                                    <th style="width: 15%;">Price</th>
+                                    <th style="width: 20%;">Added On</th>
+                                    <th style="width: 25%;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in wishlist_items %}
-                                <tr>
+                                <tr data-wishlist-id="{{ item.id }}" data-product-id="{{ item.product_id }}" data-price="{{ item.product_price }}" data-name="{{ item.product_name }}">
                                     <td>
                                         <div class="d-flex align-items-center gap-3">
                                             {% if item.product_image %}
-                                            <img src="{{ item.product_image }}" alt="{{ item.product_name }}" 
-                                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                            <a href="{{ url_for('product.product_detail', product_id=item.product_id) }}" class="text-decoration-none">
+                                                <img src="{{ item.product_image }}" alt="{{ item.product_name }}" 
+                                                     class="wishlist-img"
+                                                     style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;">
+                                            </a>
                                             {% else %}
-                                            <div style="width: 60px; height: 60px; background-color: #f0f0f0; 
+                                            <div style="width: 70px; height: 70px; background-color: #f0f0f0; 
                                                         border-radius: 8px; display: flex; align-items: center; 
                                                         justify-content: center;">
-                                                <i class="fas fa-leaf text-success"></i>
+                                                <i class="fas fa-leaf text-success fs-4"></i>
                                             </div>
                                             {% endif %}
                                             <div>
-                                                <h6 class="mb-0">{{ item.product_name }}</h6>
-                                                <small class="text-muted">ID: {{ item.product_id }}</small>
+                                                <a href="{{ url_for('product.product_detail', product_id=item.product_id) }}" class="text-decoration-none text-dark">
+                                                    <h6 class="mb-1 fw-bold">{{ item.product_name }}</h6>
+                                                </a>
+                                                <small class="text-muted">Product ID: {{ item.product_id }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="fw-bold text-success">${{ "%.2f"|format(item.product_price) }}</span>
+                                        <span class="fw-bold text-success fs-5">${{ "%.2f"|format(item.product_price) }}</span>
                                     </td>
                                     <td>
-                                        <small class="text-muted">{{ item.created_at }}</small>
+                                        <small class="text-muted">
+                                            {% if item.created_at %}
+                                                {{ item.created_at.strftime('%b %d, %Y') if item.created_at.strftime else item.created_at }}
+                                            {% else %}
+                                                Recently added
+                                            {% endif %}
+                                        </small>
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <button type="button" class="btn btn-sm btn-outline-success" 
-                                                    onclick="addToCart({{ item.product_id }}, '{{ item.product_name }}', {{ item.product_price }})">
-                                                <i class="fas fa-shopping-cart me-1"></i>Add to Cart
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-success" 
+                                                    title="Add to Cart"
+                                                    onclick="addToCart({{ item.product_id }}, '{{ item.product_name|replace("'", "\\'") }}', {{ item.product_price }})">
+                                                <i class="fas fa-shopping-cart me-1"></i>Cart
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    title="Remove from Wishlist"
                                                     onclick="removeFromWishlist({{ item.id }})">
-                                                <i class="fas fa-trash-alt"></i>
+                                                <i class="fas fa-trash-alt me-1"></i>Remove
                                             </button>
                                         </div>
                                     </td>
@@ -104,10 +160,10 @@
                     </div>
                     {% else %}
                     <div class="text-center py-5">
-                        <i class="fas fa-heart-broken fs-1 text-muted mb-3"></i>
-                        <h5 class="text-muted">Your wishlist is empty</h5>
+                        <i class="fas fa-heart-broken fs-1 text-muted mb-3" style="opacity: 0.5;"></i>
+                        <h5 class="text-muted mt-3">Your wishlist is empty</h5>
                         <p class="text-muted mb-4">Start adding items to your wishlist from our shop</p>
-                        <a href="{{ url_for('shop.shop') }}" class="btn btn-success">
+                        <a href="{{ url_for('shop.shop') }}" class="btn btn-success btn-lg">
                             <i class="fas fa-store me-2"></i>Continue Shopping
                         </a>
                     </div>
@@ -119,7 +175,10 @@
 </div>
 
 <script>
+// Add to cart functionality
 function addToCart(productId, productName, productPrice) {
+    const quantity = 1;
+    
     fetch('{{ url_for("cart.add_to_cart") }}', {
         method: 'POST',
         headers: {
@@ -129,17 +188,16 @@ function addToCart(productId, productName, productPrice) {
             id: productId,
             name: productName,
             price: productPrice,
-            quantity: 1
+            quantity: quantity
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showAlert('Added to cart!', 'success');
-            // Update cart badge
+            showAlert(`✓ "${productName}" added to cart!`, 'success');
             updateCartBadge();
         } else {
-            showAlert(data.message, 'danger');
+            showAlert(data.message || 'Error adding to cart', 'danger');
         }
     })
     .catch(error => {
@@ -148,72 +206,200 @@ function addToCart(productId, productName, productPrice) {
     });
 }
 
+// Add all wishlist items to cart
+function addAllToCart() {
+    showSiteConfirm('Add all items in your wishlist to cart?', {
+        title: 'Add all to cart?',
+        confirmButtonText: 'Add All'
+    }).then((result) => {
+        if (!result.isConfirmed) {
+            return;
+        }
+        const items = document.querySelectorAll('table tbody tr');
+        let successCount = 0;
+        let totalItems = items.length;
+
+        items.forEach((row, index) => {
+            setTimeout(() => {
+                const productId = row.getAttribute('data-product-id');
+                const productName = row.getAttribute('data-name');
+                const productPrice = row.getAttribute('data-price');
+
+                fetch('{{ url_for("cart.add_to_cart") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: parseInt(productId),
+                        name: productName,
+                        price: parseFloat(productPrice),
+                        quantity: 1
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        successCount++;
+                    }
+                    if (index === totalItems - 1) {
+                        updateCartBadge();
+                        showAlert(`✓ ${successCount} items added to cart!`, 'success');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }, index * 100);
+        });
+    });
+}
+
+// Remove item from wishlist
 function removeFromWishlist(wishlistId) {
-    if (confirm('Are you sure you want to remove this item from your wishlist?')) {
-        fetch(`{{ url_for('wishlist.remove_from_wishlist', wishlist_id='') }}${wishlistId}`, {
+    showSiteConfirm('Remove this item from your wishlist?', {
+        title: 'Remove item?',
+        confirmButtonText: 'Remove'
+    }).then((result) => {
+        if (!result.isConfirmed) {
+            return;
+        }
+        fetch(`/remove-from-wishlist/${wishlistId}`, {
             method: 'POST'
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showAlert('Removed from wishlist', 'success');
-                location.reload();
+                showAlert('✓ Removed from wishlist', 'success');
+                // Fade out and remove the row
+                const row = document.querySelector(`tr[data-wishlist-id="${wishlistId}"]`);
+                row.style.opacity = '0';
+                row.style.transition = 'opacity 0.3s';
+                setTimeout(() => {
+                    row.remove();
+                    // Reload if no items left
+                    if (document.querySelectorAll('table tbody tr').length === 0) {
+                        setTimeout(() => location.reload(), 500);
+                    }
+                }, 300);
             } else {
-                showAlert(data.message, 'danger');
+                showAlert(data.message || 'Error removing from wishlist', 'danger');
             }
         })
         .catch(error => {
             console.error('Error:', error);
             showAlert('Error removing from wishlist', 'danger');
         });
+    });
+}
+
+// Clear entire wishlist
+function clearWishlist() {
+    showSiteConfirm('This will remove all items from your wishlist. This action cannot be undone.', {
+        title: 'Clear wishlist?',
+        confirmButtonText: 'Clear Wishlist'
+    }).then((result) => {
+        if (!result.isConfirmed) {
+            return;
+        }
+        const items = document.querySelectorAll('table tbody tr');
+        items.forEach((row, index) => {
+            setTimeout(() => {
+                const wishlistId = row.getAttribute('data-wishlist-id');
+                fetch(`/remove-from-wishlist/${wishlistId}`, {
+                    method: 'POST'
+                })
+                .catch(error => console.error('Error:', error));
+                
+                if (index === items.length - 1) {
+                    setTimeout(() => location.reload(), 500);
+                }
+            }, index * 100);
+        });
+    });
+}
+
+// Show alert message
+function showAlert(message, type = 'info') {
+    const mappedType = type === 'danger' ? 'error' : type;
+    showSiteAlert(mappedType, message, {
+        toast: mappedType === 'success' || mappedType === 'info'
+    });
+}
+
+// Update cart badge
+function updateCartBadge() {
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+        // Sync with localStorage
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        badge.textContent = totalItems;
+        
+        // Dispatch event for other listeners
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
     }
 }
 
-function showAlert(message, type = 'info') {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.body.insertBefore(alertDiv, document.body.firstChild);
-    setTimeout(() => alertDiv.remove(), 5000);
-}
+// Add hover effects
+document.addEventListener('DOMContentLoaded', function() {
+    updateCartBadge();
+    const rows = document.querySelectorAll('table tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
 </script>
 
 <style>
     .card {
-        border-radius: 10px;
+        border-radius: 15px;
+        transition: all 0.3s ease;
     }
     
     .table {
-        border-radius: 8px;
+        border-radius: 12px;
         overflow: hidden;
-    }
-    
-    .table tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-    
-    .btn-group {
-        gap: 5px;
-    }
-    
-    .btn-outline-success:hover {
-        background-color: #28a745;
-        border-color: #28a745;
     }
     
     .list-unstyled li a {
         transition: all 0.3s ease;
-        padding: 8px 12px;
-        border-radius: 6px;
-        display: block;
+        padding: 10px 15px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
     }
     
     .list-unstyled li a:hover {
-        background-color: #e8f5e9;
-        padding-left: 18px;
+        background-color: rgba(75, 187, 23, 0.1);
+        color: #4bbb17 !important;
+        transform: translateX(5px);
+    }
+    
+    .list-unstyled li a.fw-bold {
+        background-color: rgba(75, 187, 23, 0.1);
+        color: #4bbb17 !important;
+    }
+
+    .btn {
+        border-radius: 10px;
+        padding: 8px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success {
+        background-color: #4bbb17;
+        border-color: #4bbb17;
+    }
+
+    .btn-success:hover {
+        background-color: #3a9012;
+        border-color: #3a9012;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(75, 187, 23, 0.3);
     }
 </style>
 {% endblock %}

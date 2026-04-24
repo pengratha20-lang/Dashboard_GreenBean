@@ -1,4 +1,4 @@
-{% extends "auth-base.html" %}
+{% extends "frontside/auth-base.html" %}
 
 {% block title %}Create Account - Green Bean Premium Plant Store{% endblock %}
 
@@ -66,7 +66,7 @@
 
                     <!-- Card Body -->
                     <div class="card-body p-5">
-                        <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                        <form method="POST" action="{{ url_for('customer_auth.register') }}" id="registerForm">
                             <!-- Full Name Field -->
                             <div class="mb-4">
                                 <label for="name" class="form-label fw-600 mb-2">Full Name</label>
@@ -77,7 +77,7 @@
                                     <input type="text" class="form-control border-0" id="name" name="name" 
                                            placeholder="John Doe" required style="padding: 12px; font-size: 16px;">
                                 </div>
-                                <small class="text-muted d-block mt-2">We'd love to know your name!</small>
+                                <small class="text-muted d-block mt-2">Letters and spaces only.</small>
                             </div>
 
                             <!-- Email Field -->
@@ -90,7 +90,7 @@
                                     <input type="email" class="form-control border-0" id="email" name="email" 
                                            placeholder="your.email@example.com" required style="padding: 12px; font-size: 16px;">
                                 </div>
-                                <small class="text-muted d-block mt-2">We'll never share your email with anyone.</small>
+                                <small class="text-muted d-block mt-2">Valid email required.</small>
                             </div>
 
                             <!-- Password Field -->
@@ -103,7 +103,7 @@
                                     <input type="password" class="form-control border-0" id="password" name="password" 
                                            placeholder="Create a strong password" required minlength="6" style="padding: 12px; font-size: 16px;">
                                 </div>
-                                <small class="text-muted d-block mt-2">Minimum 6 characters recommended.</small>
+                                <small class="text-muted d-block mt-2">Min. 6 characters.</small>
                             </div>
 
                             <!-- Confirm Password Field -->
@@ -116,6 +116,7 @@
                                     <input type="password" class="form-control border-0" id="confirm_password" 
                                            name="confirm_password" placeholder="Confirm your password" required style="padding: 12px; font-size: 16px;">
                                 </div>
+                                <small class="text-muted d-block mt-2">Must match password.</small>
                             </div>
 
                             <!-- Terms & Conditions -->
@@ -143,29 +144,13 @@
                             <!-- Login Link -->
                             <p class="text-center mb-0">
                                 Already have an account? 
-                                <a href="{{ url_for('auth.login') }}" class="fw-bold text-success text-decoration-none" style="font-size: 16px;">
+                                <a href="{{ url_for('customer_auth.login') }}" class="fw-bold text-success text-decoration-none" style="font-size: 16px;">
                                     Login here <i class="fas fa-arrow-right ms-1"></i>
                                 </a>
                             </p>
                         </form>
                     </div>
                 </div>
-
-                <!-- Features Section -->
-                <!-- <div class="row g-3 mt-5">
-                    <div class="col-6 text-center">
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
-                            <i class="fas fa-rocket text-success mb-2" style="font-size: 28px; display: block;"></i>
-                            <p class="small text-muted mb-0"><strong>Quick Start</strong><br>Ready in seconds</p>
-                        </div>
-                    </div>
-                    <div class="col-6 text-center">
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
-                            <i class="fas fa-star text-success mb-2" style="font-size: 28px; display: block;"></i>
-                            <p class="small text-muted mb-0"><strong>Rewards</strong><br>Earn points daily</p>
-                        </div>
-                    </div>
-                </div> -->
             </div>
         </div>
     </div>
@@ -262,5 +247,121 @@
         }
     }
 </style>
+
+<script>
+    // Handle form submission - Flask does the validation!
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        console.log('Submitting registration form...');
+        
+        try {
+            const response = await fetch('{{ url_for("customer_auth.register") }}', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json'  // Tell server to return JSON, not error page
+                }
+            });
+            
+            const responseText = await response.text();
+            console.log('Response status:', response.status);
+            console.log('Response text length:', responseText.length);
+            
+            // Check HTTP status code - if 400+ it's an error
+            if (response.status >= 400) {
+                console.log('Error detected, status:', response.status);
+                console.log('Response contains:', responseText.substring(0, 500));
+                
+                // Extract error from response HTML - be aggressive!
+                let errorMessage = 'Registration failed. Please check your input and try again.';
+                
+                // Look for register_error variable in Jinja2 context
+                let patterns = [
+                    /register_error\s*:\s*['"](.*?)['"]/, // Jinja context
+                    /register_error\s*=\s*['"](.*?)['"]/, // Assignment
+                    /<[^>]*register_error[^>]*>([^<]*)</, // In HTML element
+                    /register_error['":\s]+([^'"<\n}]+)/ // Generic pattern
+                ];
+                
+                for (let pattern of patterns) {
+                    const match = responseText.match(pattern);
+                    if (match && match[1]) {
+                        errorMessage = match[1].trim();
+                        console.log('Found error with pattern:', pattern, '-> Message:', errorMessage);
+                        break;
+                    }
+                }
+                
+                // If still generic, check for specific keywords
+                if (errorMessage.includes('please check your input')) {
+                    if (responseText.includes('at least 6 characters')) {
+                        errorMessage = 'Password must be at least 6 characters';
+                    } else if (responseText.includes('already registered')) {
+                        errorMessage = 'Email already registered. Please login or use a different email.';
+                    } else if (responseText.includes('Passwords do not match')) {
+                        errorMessage = 'Passwords do not match. Please check and try again.';
+                    } else if (responseText.includes('All fields are required')) {
+                        errorMessage = 'All fields are required. Please fill out the entire form.';
+                    } else if (responseText.includes('Terms')) {
+                        errorMessage = 'You must agree to the Terms & Conditions to register.';
+                    }
+                }
+                
+                console.log('Final error message:', errorMessage);
+                
+                Swal.fire({
+                    title: 'Registration Failed ❌',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonText: 'Try Again',
+                    confirmButtonColor: '#4bbb17',
+                    allowOutsideClick: false
+                });
+                return;
+            }
+            
+            // Status 200-399 = SUCCESS!
+            console.log('Registration successful!');
+            Swal.fire({
+                title: 'Account Created! 🎉',
+                text: 'Welcome to Green Bean! Redirecting...',
+                icon: 'success',
+                confirmButtonText: 'Start Shopping',
+                confirmButtonColor: '#4bbb17',
+                allowOutsideClick: false,
+                timer: 2000,
+                timerProgressBar: true
+            }).then(() => {
+                window.location.href = '{{ url_for("home.home") }}';
+            });
+            
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Network Error',
+                text: error.message,
+                icon: 'error',
+                confirmButtonText: 'Try Again',
+                confirmButtonColor: '#4bbb17'
+            });
+        }
+    });
+
+    // Show error if page loaded with error variable
+    {% if register_error %}
+        console.log('Page loaded with error:', '{{ register_error }}');
+        Swal.fire({
+            title: 'Registration Failed ❌',
+            text: '{{ register_error }}',
+            icon: 'error',
+            confirmButtonText: 'Try Again',
+            confirmButtonColor: '#4bbb17',
+            allowOutsideClick: false
+        });
+    {% endif %}
+</script>
 
 {% endblock %}

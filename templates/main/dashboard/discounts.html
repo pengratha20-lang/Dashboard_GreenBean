@@ -1,0 +1,347 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Discounts - Green Bean Smart Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .discount-table-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+    }
+
+    .coupon-code {
+        font-family: 'Monaco', 'Consolas', monospace;
+        background: #f1f5f9;
+        padding: 4px 10px;
+        border-radius: 8px;
+        color: var(--dark-green);
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .discount-value-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #fffbeb;
+        border: 1px solid #fef3c7;
+        padding: 4px 12px;
+        border-radius: 20px;
+        color: #d97706;
+        font-weight: 700;
+    }
+
+    .status-pill {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .status-active { background: #dcfce7; color: #15803d; }
+    .status-inactive { background: #fee2e2; color: #b91c1c; }
+
+    .search-wrapper-premium {
+        position: relative;
+        max-width: 400px;
+    }
+
+    .search-wrapper-premium i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    .search-input-premium {
+        padding: 12px 15px 12px 45px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        width: 100%;
+        transition: all 0.2s;
+        background: #f8fafc;
+    }
+
+    .search-input-premium:focus {
+        background: white;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(34, 165, 74, 0.1);
+        outline: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-5 align-items-center">
+    <div class="col">
+        <h1 class="module-title mb-1">Promotional Tool</h1>
+        <p class="text-muted">Manage coupon codes, flash sales and rewards.</p>
+    </div>
+    <div class="col-auto">
+        <button class="btn-premium" data-bs-toggle="modal" data-bs-target="#addDiscountModal">
+            <i class="fas fa-plus me-2"></i> Create Coupon
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col">
+        <div class="search-wrapper-premium">
+            <i class="fas fa-search"></i>
+            <input type="text" id="discountSearch" class="search-input-premium" placeholder="Find coupon or description..." onkeyup="filterDiscounts()">
+        </div>
+    </div>
+</div>
+
+<div class="discount-table-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Code</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Constraints</th>
+                    <th>Performance</th>
+                    <th>Expiration</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="discountTableBody">
+                <!-- Data rendered by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade dashboard-modal" id="addDiscountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pt-4 px-4">
+                <h5 class="fw-bold"><i class="fas fa-gift me-2 text-success"></i> New Campaign</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="addDiscountForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase">Coupon Code</label>
+                        <input type="text" class="form-control rounded-3" name="code" placeholder="WINTER2024" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase">Internal Description</label>
+                        <input type="text" class="form-control rounded-3" name="description" placeholder="Short internal details">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Type</label>
+                            <select class="form-select rounded-3" name="discount_type" required>
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Value</label>
+                            <input type="number" class="form-control rounded-3" name="discount_value" required step="0.01">
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Min Purchase</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" name="min_purchase" value="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Expiry</label>
+                            <input type="date" class="form-control rounded-3" name="expiry_date" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-premium px-4" onclick="saveDiscount()">Launch Campaign</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade dashboard-modal" id="editDiscountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pt-4 px-4">
+                <h5 class="fw-bold"><i class="fas fa-edit me-2 text-primary"></i> Edit Campaign</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editDiscountForm">
+                    <input type="hidden" id="editDiscountId" name="id">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase">Coupon Code</label>
+                        <input type="text" class="form-control rounded-3" name="code" id="editCode" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase">Status</label>
+                        <select class="form-select rounded-3" name="status" id="editStatus">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Expiry</label>
+                            <input type="date" class="form-control rounded-3" name="expiry_date" id="editExpiry" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Value</label>
+                            <input type="number" class="form-control rounded-3" name="discount_value" id="editValue" required step="0.01">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-premium px-4" onclick="updateDiscount()">Update Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" id="discountsData">
+{{ discounts | tojson }}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let discounts = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const data = document.getElementById('discountsData').textContent;
+        discounts = JSON.parse(data);
+        renderTable();
+    });
+
+    function filterDiscounts() {
+        const query = document.getElementById('discountSearch').value.toLowerCase();
+        const filtered = discounts.filter(d => d.code.toLowerCase().includes(query));
+        renderTable(filtered);
+    }
+
+    function renderTable(data = discounts) {
+        const tbody = document.getElementById('discountTableBody');
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5">No active campaigns found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(d => `
+            <tr>
+                <td class="ps-4">
+                    <span class="coupon-code">${d.code}</span>
+                    <div class="small text-muted mt-1">${d.description || 'No description'}</div>
+                </td>
+                <td><span class="text-uppercase small fw-bold">${d.discount_type}</span></td>
+                <td><span class="discount-value-pill">${d.discount_type === 'percentage' ? d.discount_value + '%' : '$' + d.discount_value}</span></td>
+                <td><small>Min. $${d.min_purchase || 0}</small></td>
+                <td>
+                    <div class="small fw-bold">${d.usage_count || 0} Uses</div>
+                    <div class="progress mt-1" style="height: 4px; width: 80px;">
+                        <div class="progress-bar bg-success" style="width: ${(d.usage_count / (d.max_usage || 100)) * 100}%"></div>
+                    </div>
+                </td>
+                <td><small class="text-muted fw-bold">${d.expiry_date}</small></td>
+                <td><span class="status-pill status-${d.status}">${d.status}</span></td>
+                <td class="text-end pe-4">
+                    <div class="action-buttons justify-content-end">
+                        <button class="btn-icon btn-edit" onclick="openEditModal(${d.id})" data-bs-toggle="modal" data-bs-target="#editDiscountModal">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="openDeleteModal(${d.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function saveDiscount() {
+        const formData = new FormData(document.getElementById('addDiscountForm'));
+        fetch('{{ url_for("discount_module.add_discount") }}', {
+            method: 'POST', body: formData
+        }).then(res => res.json()).then(data => {
+            if (data.success) {
+                Swal.fire({ title: 'Campaign Launched!', icon: 'success', toast: true, position: 'top-end' });
+                bootstrap.Modal.getInstance(document.getElementById('addDiscountModal')).hide();
+                discounts.push(data.data);
+                renderTable();
+            }
+        });
+    }
+
+    function openEditModal(id) {
+        const d = discounts.find(x => x.id === id);
+        if (d) {
+            document.getElementById('editDiscountId').value = id;
+            document.getElementById('editCode').value = d.code;
+            document.getElementById('editValue').value = d.discount_value;
+            document.getElementById('editStatus').value = d.status;
+            document.getElementById('editExpiry').value = formatDateForInput(d.expiry_date);
+        }
+    }
+
+    function updateDiscount() {
+        const id = document.getElementById('editDiscountId').value;
+        const formData = new FormData(document.getElementById('editDiscountForm'));
+        fetch(`{{ url_for("discount_module.edit_discount", discount_id=0) }}`.replace('0', id), {
+            method: 'POST', body: formData
+        }).then(res => res.json()).then(data => {
+            if (data.success) {
+                Swal.fire({ title: 'Campaign Updated', icon: 'success', toast: true, position: 'top-end' });
+                bootstrap.Modal.getInstance(document.getElementById('editDiscountModal')).hide();
+                const idx = discounts.findIndex(x => x.id === parseInt(id));
+                if (idx > -1) discounts[idx] = data.data;
+                renderTable();
+            }
+        });
+    }
+
+    function openDeleteModal(id) {
+        Swal.fire({
+            title: 'Delete Campaign?', text: 'This will revoke all active coupons.', icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#ef4444'
+        }).then(res => {
+            if (res.isConfirmed) {
+                fetch(`{{ url_for("discount_module.delete_discount", discount_id=0) }}`.replace('0', id), { method: 'DELETE' })
+                .then(r => r.json()).then(data => {
+                    if (data.success) {
+                        discounts = discounts.filter(x => x.id !== id);
+                        renderTable();
+                    }
+                });
+            }
+        });
+    }
+
+    function formatDateForInput(date) {
+        const parts = date.split(' ');
+        if (parts.length < 3) return '';
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const m = months.indexOf(parts[0]);
+        const d = parts[1].replace(',', '');
+        const y = parts[2];
+        return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+</script>
+{% endblock %}

@@ -5,15 +5,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Shopping Cart - Green Bean Plant Store">
+  {% if session.get('customer_id') %}
+  <meta name="user-id" content="{{ session.get('customer_id') }}">
+  {% endif %}
   <title>Shopping Cart - Green Bean Plant Store</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/product.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/shop-layout.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/product.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/shop-layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/cart.css') }}">
 </head>
 
 <body>
@@ -70,15 +73,15 @@
                   <i class="fas fa-user-circle fs-4"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                  {% if session.get('user_id') %}
-                    <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user me-2"></i>My Account</a></li>
+                  {% if session.get('customer_id') %}
+                    <li><a class="dropdown-item" href="{{ url_for('customer_auth.profile') }}"><i class="fas fa-user me-2"></i>My Account</a></li>
                     <li><a class="dropdown-item" href="{{ url_for('wishlist.view_wishlist') }}"><i class="fas fa-heart me-2"></i>Wishlist</a></li>
                     <li><a class="dropdown-item" href="{{ url_for('orders.my_orders') }}"><i class="fas fa-box me-2"></i>Orders</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('customer_auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                   {% else %}
-                    <li><a class="dropdown-item" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus me-2"></i>Register</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('customer_auth.login') }}"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('customer_auth.register') }}"><i class="fas fa-user-plus me-2"></i>Register</a></li>
                   {% endif %}
                 </ul>
               </div>
@@ -123,22 +126,18 @@
           <div class="cart-items-section">
             <!-- Cart Header -->
             <div class="cart-header bg-light p-4 rounded-top">
-              <div class="row align-items-center">
-                <div class="col-md-6">
-                  <h4 class="mb-0">Your Items</h4>
-                </div>
-                <div class="col-md-6 text-md-end">
-                  <button class="btn btn-outline-danger btn-sm" id="clear-all-btn">
-                    <i class="fas fa-trash me-2"></i>Clear All
-                  </button>
-                </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Your Items</h4>
+                <button class="btn btn-outline-danger btn-sm ms-5" id="clear-all-btn">
+                  <i class="fas fa-trash me-2"></i>Clear All
+                </button>
               </div>
             </div>
 
             <!-- Cart Items List -->
-            <div class="cart-items-list border border-top-0 rounded-bottom" id="cart-items-container">
+            <div class="cart-items-list border border-top-0 rounded-bottom" id="cart-items-container" style="max-height: none; overflow-y: visible;">
               <!-- Empty Cart State -->
-              <div class="empty-cart text-center py-5" id="empty-cart-state">
+              <div class="empty-cart text-center py-5" id="empty-cart-state" style="display: block;">
                 <i class="fas fa-shopping-cart text-muted mb-3" style="font-size: 4rem; opacity: 0.3;"></i>
                 <h3 class="text-muted mb-3">Your cart is empty</h3>
                 <p class="text-muted mb-4">Discover our amazing collection of plants and start your green journey!</p>
@@ -146,7 +145,6 @@
                   <i class="fas fa-leaf me-2"></i>Start Shopping
                 </a>
               </div>
-
               <!-- Cart Items will be dynamically populated here -->
             </div>
           </div>
@@ -174,101 +172,18 @@
                   <span>Subtotal (<span id="total-items">0</span> items):</span>
                   <span id="subtotal">$0.00</span>
                 </div>
-                <div class="summary-item d-flex justify-content-between mb-3">
-                  <span>Shipping:</span>
-                  <span id="shipping-cost">Free</span>
-                </div>
-                <div class="summary-item d-flex justify-content-between mb-3">
-                  <span>Tax:</span>
-                  <span id="tax-amount">$0.00</span>
-                </div>
                 <hr>
                 <div class="summary-total d-flex justify-content-between mb-4">
                   <strong>Total:</strong>
                   <strong class="text-success" id="final-total">$0.00</strong>
                 </div>
                 
-                <!-- Coupon Code -->
-                <div class="coupon-section mb-4">
-                  <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Coupon code" id="coupon-input">
-                    <button class="btn btn-outline-secondary" type="button" id="apply-coupon-btn">Apply</button>
-                  </div>
-                  <div id="applied-coupon-display" style="display: none;">
-                    <div class="alert alert-success py-2 px-3 mb-2 d-flex justify-content-between align-items-center">
-                      <span id="applied-coupon-text"></span>
-                      <button class="btn btn-sm btn-outline-danger" id="remove-coupon-btn">Remove</button>
-                    </div>
-                  </div>
-                  <small class="text-muted">Free shipping on orders over 100,000₨</small>
-                </div>
-
                 <!-- Checkout Button -->
                 <a href="{{ url_for('checkout.checkout') }}" class="btn btn-success w-100 btn-lg mb-3" id="checkout-btn">
                   <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
                 </a>
                 
-                <!-- Delivery Methods -->
-                <div class="delivery-methods text-center">
-                  <small class="text-muted d-block mb-2">Delivery Partners:</small>
-                  <div class="delivery-partners">
-                    <div class="delivery-partner mb-2">
-                      <i class="fas fa-truck text-success me-2"></i>
-                      <small>Vireakbunthan</small>
-                    </div>
-                    <div class="delivery-partner">
-                      <i class="fas fa-cube text-info"></i>
-                      <small>J&T Express</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Shipping Info -->
-            <div class="card border-0 shadow-sm mb-4">
-              <div class="card-header bg-light">
-                <h6 class="mb-0">
-                  <i class="fas fa-truck me-2 text-success"></i>Delivery Information
-                </h6>
-              </div>
-              <div class="card-body">
-                <div class="shipping-option mb-3">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="shipping" id="vireakbunthan-phnom-penh" data-cost="2.5" value="vireakbunthan-pp" checked>
-                    <label class="form-check-label" for="vireakbunthan-phnom-penh">
-                      <strong>Vireakbunthan - Phnom Penh</strong><br>
-                      <small class="text-muted">2-3 days - 2,500₨</small>
-                    </label>
-                  </div>
-                </div>
-                <div class="shipping-option mb-3">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="shipping" id="vireakbunthan-province" data-cost="5" value="vireakbunthan-prov">
-                    <label class="form-check-label" for="vireakbunthan-province">
-                      <strong>Vireakbunthan - Provinces</strong><br>
-                      <small class="text-muted">5-7 days - 5,000₨</small>
-                    </label>
-                  </div>
-                </div>
-                <div class="shipping-option mb-3">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="shipping" id="jnt-phnom-penh" data-cost="3" value="jnt-pp">
-                    <label class="form-check-label" for="jnt-phnom-penh">
-                      <strong>J&T Express - Phnom Penh</strong><br>
-                      <small class="text-muted">1-2 days - 3,000₨</small>
-                    </label>
-                  </div>
-                </div>
-                <div class="shipping-option">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="shipping" id="jnt-province" data-cost="6" value="jnt-prov">
-                    <label class="form-check-label" for="jnt-province">
-                      <strong>J&T Express - Provinces</strong><br>
-                      <small class="text-muted">3-4 days - 6,000₨</small>
-                    </label>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -294,16 +209,6 @@
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recently Viewed Products -->
-      <div class="row mt-5">
-        <div class="col-12">
-          <h3 class="mb-4">You might also like</h3>
-          <div class="row g-4" id="recommended-products">
-            <!-- Recommended products will be populated here -->
           </div>
         </div>
       </div>
@@ -372,11 +277,46 @@
     </div>
   </footer>
 
+  <!-- Clear All Confirmation Modal -->
+  <div class="modal fade" id="clearCartModal" tabindex="-1" aria-labelledby="clearCartLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-danger text-white border-0">
+          <h5 class="modal-title" id="clearCartLabel">
+            <i class="fas fa-exclamation-triangle me-2"></i>Clear Cart?
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center p-4">
+          <i class="fas fa-trash-alt text-danger mb-3" style="font-size: 3rem;"></i>
+          <p class="mb-3">
+            <strong>Are you sure you want to clear all products from your cart?</strong>
+          </p>
+          <p class="text-muted mb-0">This action cannot be undone. All items will be removed from your cart.</p>
+        </div>
+        <div class="modal-footer border-top bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button type="button" class="btn btn-danger" id="confirmClearBtn">
+            <i class="fas fa-trash me-2"></i>Yes, Clear All
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pass cart data to JavaScript -->
+  <script>
+    // Cart data from Flask backend
+    window.cartDataFromFlask = {{ cart_items|tojson }};
+  </script>
+
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
     integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-  <!-- Custom JS -->
-  <script src="{{ url_for('static', filename='js/cart-badge-fix.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+  
+  <!-- Flask-based Cart System -->
+  <script src="{{ url_for('static', filename='main/frontside/js/cart-backend.js') }}"></script>
 </body>
 </html>

@@ -3,12 +3,29 @@ document.addEventListener("DOMContentLoaded", () => {
     let cartItems = [];
     let isLoading = false;
     
+    // IMPORTANT: Cart uses localStorage (browser storage), NOT session cookies
+    // Clearing cookies will NOT clear the cart. You must also clear localStorage.
+    
+    // CURRENCY SETTINGS - USD ONLY
+    const EXCHANGE_RATE = 4100; // 1 USD = 4,100 KHR (reference only)
+    let currentCurrency = 'USD'; // Always USD
+    
     // Force load cart from localStorage
     function loadCartData() {
         const storedCart = localStorage.getItem('cart');
-        console.log('Cart.js - Raw localStorage data:', storedCart);
         cartItems = JSON.parse(storedCart) || [];
-        console.log('Cart.js - Parsed cartItems:', cartItems);
+
+        const storedCouponMeta = localStorage.getItem('appliedCouponMeta');
+        appliedCoupon = null;
+        if (storedCouponMeta) {
+            try {
+                appliedCoupon = JSON.parse(storedCouponMeta);
+            } catch (error) {
+                localStorage.removeItem('appliedCouponMeta');
+                localStorage.removeItem('appliedCoupon');
+            }
+        }
+
         return cartItems;
     }
     
@@ -18,12 +35,22 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add page visibility change listener to refresh cart
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden) {
-            console.log('Cart.js - Page became visible, refreshing cart...');
             loadCartData();
             displayCartItems();
             updateCartSummary();
             updateCartBadge();
+        } else {
+            // Page is hidden - reset loading state to prevent stuck buttons
+            if (isLoading && checkoutBtn) {
+                isLoading = false;
+                checkoutBtn.classList.remove('disabled');
+            }
         }
+    });
+
+    // Reset loading state if user clicks browser back button or navigates away
+    window.addEventListener('beforeunload', () => {
+        isLoading = false;
     });
 
     // DOM Elements with existence check
@@ -41,89 +68,59 @@ document.addEventListener("DOMContentLoaded", () => {
     const applyCouponBtn = document.getElementById('apply-coupon-btn');
     const recommendedProductsContainer = document.getElementById('recommended-products');
     
-    // Debug DOM elements
-    console.log('Cart.js - DOM Elements Check:');
-    console.log('- cartBadge:', !!cartBadge);
-    console.log('- cartItemsContainer:', !!cartItemsContainer);
-    console.log('- emptyCartState:', !!emptyCartState);
-    console.log('- totalItemsSpan:', !!totalItemsSpan);
-    console.log('- checkoutBtn:', !!checkoutBtn);
-
     // Shipping options
     const shippingOptions = document.querySelectorAll('input[name="shipping"]');
     
     // Constants
-    const TAX_RATE = 0.08; // 8% tax rate
-    const FREE_SHIPPING_THRESHOLD = 100000; // 100,000 Riel
+    const TAX_RATE = 0; // 0% tax rate (removed)
+    const FREE_SHIPPING_THRESHOLD_USD = 50; // $50 USD
     const SHIPPING_COSTS = {
-        'vireakbunthan-pp': 2500,      // Vireakbunthan - Phnom Penh: 2,500 Riel
-        'vireakbunthan-prov': 5000,    // Vireakbunthan - Provinces: 5,000 Riel
-        'jnt-pp': 3000,                // J&T Express - Phnom Penh: 3,000 Riel
-        'jnt-prov': 6000               // J&T Express - Provinces: 6,000 Riel
-    };
-
-    // Coupon codes
-    const COUPON_CODES = {
-        'WELCOME10': { discount: 0.10, type: 'percentage', description: '10% off' },
-        'PLANT20': { discount: 0.20, type: 'percentage', description: '20% off' },
-        'SAVE5': { discount: 5, type: 'fixed', description: '$5 off' },
-        'FREESHIP': { discount: 0, type: 'freeship', description: 'Free shipping' }
+        'vireakbunthan-pp': 2.50,      // Vireakbunthan - Phnom Penh: $2.50
+        'vireakbunthan-prov': 5.00,    // Vireakbunthan - Provinces: $5.00
+        'jnt-pp': 3.00,                // J&T Express - Phnom Penh: $3.00
+        'jnt-prov': 6.00               // J&T Express - Provinces: $6.00
     };
 
     let appliedCoupon = null;
 
+    // ===== CURRENCY CONVERSION FUNCTIONS =====
+    function formatPrice(amount, currency = 'USD') {
+        // Always format as USD with $ symbol
+        return '$' + amount.toFixed(2);
+    }
+
+    function getPriceInCurrentCurrency(usdAmount) {
+        // Always return USD amount
+        return usdAmount;
+    }
+
+    function changeCurrency(newCurrency) {
+        // Currency is fixed to USD - no changing needed
+    }
+    // ===== END CURRENCY FUNCTIONS =====
+
     // Initialize cart with delay to ensure DOM is ready
     setTimeout(initializeCart, 100);
     
-    // Also make global function for manual refresh
-    window.refreshCart = function() {
-        console.log('Manual cart refresh called');
-        loadCartData();
-        initializeCart();
-    };
-    
-    // Test function to force display cart items
-    window.testDisplayCart = function() {
-        console.log('🧪 Test display cart called');
-        
-        // Force load data
-        const rawCart = localStorage.getItem('cart');
-        console.log('Raw localStorage cart:', rawCart);
-        
-        if (!rawCart) {
-            console.log('No cart data found in localStorage');
-            return;
-        }
-        
-        const testCart = JSON.parse(rawCart);
-        console.log('Parsed cart data:', testCart);
-        
-        // Force update cartItems
-        cartItems.length = 0;
-        cartItems.push(...testCart);
-        
-        console.log('Updated cartItems:', cartItems);
-        
-        // Force display
-        displayCartItems();
-        updateCartSummary();
-        updateCartBadge();
-    };
+
     
     function initializeCart() {
-        // Debug logging
-        console.log('Cart.js - Initializing cart...');
+        // Reset loading state when cart page loads (user might have navigated back from checkout)
+        isLoading = false;
+        if (checkoutBtn) {
+            checkoutBtn.classList.remove('disabled');
+            checkoutBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Proceed to Checkout';
+        }
         
         // Reload cart data to make sure we have the latest
         loadCartData();
-        console.log('Cart.js - After reload - cartItems:', cartItems);
-        console.log('Cart.js - After reload - cartItems length:', cartItems.length);
         
         displayCartItems();
         updateCartSummary();
+        updateCouponDisplay();
         setupEventListeners();
-        loadRecommendedProducts();
         updateCartBadge();
+        loadRecommendedProducts();
         
         console.log('Cart.js - Initialization complete');
     }
@@ -139,7 +136,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Clear all button
         if (clearAllBtn) {
-            clearAllBtn.addEventListener('click', clearCart);
+            clearAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Show confirmation modal instead of directly clearing
+                const clearModal = new bootstrap.Modal(document.getElementById('clearCartModal'));
+                clearModal.show();
+            });
+        }
+
+        // Confirm clear button in modal
+        const confirmClearBtn = document.getElementById('confirmClearBtn');
+        if (confirmClearBtn) {
+            confirmClearBtn.addEventListener('click', function() {
+                const clearModal = bootstrap.Modal.getInstance(document.getElementById('clearCartModal'));
+                clearModal.hide();
+                clearCart(); // Now actually clear the cart
+            });
         }
 
         // Coupon application
@@ -170,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (!cartItem) return;
         
-        const productId = cartItem.dataset.productId;
+        const productId = normalizeProductId(cartItem.dataset.productId);
         
         if (target.classList.contains('remove-item-btn') || target.closest('.remove-item-btn')) {
             e.preventDefault();
@@ -185,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function handleQuantityChange(e) {
         if (e.target.classList.contains('quantity-input')) {
             const cartItem = e.target.closest('.cart-item');
-            const productId = cartItem.dataset.productId;
+            const productId = normalizeProductId(cartItem.dataset.productId);
             const newQuantity = parseInt(e.target.value) || 1;
             
             if (newQuantity > 0 && newQuantity <= 99) {
@@ -196,8 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function displayCartItems() {
         console.log('Cart.js - displayCartItems called');
-        console.log('Cart.js - cartItemsContainer exists:', !!cartItemsContainer);
-        console.log('Cart.js - emptyCartState exists:', !!emptyCartState);
         console.log('Cart.js - cartItems:', cartItems);
         console.log('Cart.js - cartItems.length:', cartItems.length);
         
@@ -211,26 +221,36 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // Remove any previously rendered items
+        const existingItems = cartItemsContainer.querySelectorAll('.cart-item');
+        existingItems.forEach(item => item.remove());
+
         if (cartItems.length === 0) {
             console.log('Cart.js - Showing empty cart state');
-            if (emptyCartState) emptyCartState.style.display = 'block';
-            const existingList = cartItemsContainer.querySelector('.cart-items-list');
-            if (existingList) existingList.style.display = 'none';
+            emptyCartState.style.display = 'block';
+            // Make sure container is visible
+            cartItemsContainer.style.display = 'block';
             return;
         }
 
-        console.log('Cart.js - Showing cart items');
-        if (emptyCartState) emptyCartState.style.display = 'none';
+        console.log('Cart.js - Showing cart items, count:', cartItems.length);
+        emptyCartState.style.display = 'none';
+        cartItemsContainer.style.display = 'block';
         
-        const cartItemsHTML = cartItems.map(item => createCartItemHTML(item)).join('');
-        console.log('Cart.js - Generated HTML length:', cartItemsHTML.length);
-        console.log('Cart.js - Sample HTML:', cartItemsHTML.substring(0, 200));
+        const cartItemsHTML = cartItems.map(item => {
+            const html = createCartItemHTML(item);
+            console.log('Rendering item:', item.id, item.name);
+            return html;
+        }).join('');
         
-        cartItemsContainer.innerHTML = `
-            <div class="cart-items-list">
-                ${cartItemsHTML}
-            </div>
-        `;
+        console.log('Cart.js - Generated HTML for all items, length:', cartItemsHTML.length);
+        
+        // Insert items after empty state (they will be visible since empty state is hidden)
+        if (emptyCartState) {
+            emptyCartState.insertAdjacentHTML('afterend', cartItemsHTML);
+        } else {
+            cartItemsContainer.insertAdjacentHTML('beforeend', cartItemsHTML);
+        }
         
         console.log('Cart.js - Cart items displayed successfully');
     }
@@ -250,7 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {string} HTML string for the cart item
      */
     function createCartItemHTML(item) {
-        const itemTotal = (item.price * item.quantity).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        const itemTotal = (item.price * item.quantity).toFixed(2);
         const discountPercentage = item.originalPrice ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) : 0;
         
         return `
@@ -274,8 +294,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     <div class="col-md-2">
                         <div class="cart-item-price">
-                            ${item.originalPrice ? `<span class="cart-item-price-original">\u20a8${item.originalPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>` : ''}
-                            \u20a8${item.price.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                            ${item.originalPrice ? `<span class="cart-item-price-original">$${item.originalPrice.toFixed(2)}</span>` : ''}
+                            $${item.price.toFixed(2)}
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -285,7 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <button class="quantity-btn" data-action="increase" ${item.quantity >= 99 ? 'disabled' : ''}>+</button>
                         </div>
                         <div class="text-center mt-2">
-                            <small class="text-muted">Total: \u20a8${itemTotal}</small>
+                            <small class="text-muted">Total: $${(item.price * item.quantity).toFixed(2)}</small>
                         </div>
                     </div>
                     <div class="col-md-1">
@@ -298,8 +318,14 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     }
 
+    function normalizeProductId(value) {
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? String(value) : parsed;
+    }
+
     function updateQuantity(productId, action) {
-        const itemIndex = cartItems.findIndex(item => item.id === productId);
+        const normalizedProductId = normalizeProductId(productId);
+        const itemIndex = cartItems.findIndex(item => normalizeProductId(item.id) === normalizedProductId);
         if (itemIndex === -1) return;
 
         const item = cartItems[itemIndex];
@@ -318,7 +344,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateQuantityDirect(productId, newQuantity) {
-        const itemIndex = cartItems.findIndex(item => item.id === productId);
+        const normalizedProductId = normalizeProductId(productId);
+        const itemIndex = cartItems.findIndex(item => normalizeProductId(item.id) === normalizedProductId);
         if (itemIndex === -1) return;
 
         cartItems[itemIndex].quantity = Math.max(1, Math.min(99, newQuantity));
@@ -329,7 +356,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function removeFromCart(productId) {
-        const itemIndex = cartItems.findIndex(item => item.id === productId);
+        const normalizedProductId = normalizeProductId(productId);
+        const itemIndex = cartItems.findIndex(item => normalizeProductId(item.id) === normalizedProductId);
         if (itemIndex === -1) return;
 
         // Add slide-out animation
@@ -353,21 +381,20 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (confirm('Are you sure you want to remove all items from your cart?')) {
-            cartItems = [];
-            appliedCoupon = null;
-            saveCartToStorage();
-            displayCartItems();
-            updateCartSummary();
-            updateCartBadge();
-            
-            // Dispatch custom event for cross-page synchronization
-            window.dispatchEvent(new CustomEvent('cartUpdated', {
-                detail: { items: cartItems, action: 'clear' }
-            }));
-            
-            showMessage('Cart cleared successfully!', 'success');
-        }
+        // User already confirmed via Bootstrap modal, so directly clear cart
+        cartItems = [];
+        appliedCoupon = null;
+        saveCartToStorage();
+        displayCartItems();
+        updateCartSummary();
+        updateCartBadge();
+        
+        // Dispatch custom event for cross-page synchronization
+        window.dispatchEvent(new CustomEvent('cartUpdated', {
+            detail: { items: cartItems, action: 'clear' }
+        }));
+        
+        showMessage('Cart cleared successfully!', 'success');
     }
 
     function updateCartSummary() {
@@ -394,9 +421,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (appliedCoupon && appliedCoupon.type === 'freeship') {
             shippingCost = 0;
             console.log('Free shipping applied via coupon');
-        } else if (subtotal >= FREE_SHIPPING_THRESHOLD && selectedShipping?.value === 'vireakbunthan-pp') {
+        } else if (subtotal >= FREE_SHIPPING_THRESHOLD_USD && selectedShipping?.value === 'vireakbunthan-pp') {
             shippingCost = 0;
-            console.log('Free Phnom Penh delivery applied (over 100,000\u20a8)');
+            console.log('Free Phnom Penh delivery applied (over $50)');
         }
 
         // Calculate discount
@@ -415,21 +442,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log('Summary calculation:', { subtotal, shippingCost, tax, total });
 
-        // Update DOM elements with Riel currency
+        // Update DOM elements with selected currency
         if (totalItemsSpan) totalItemsSpan.textContent = totalItems;
-        if (subtotalSpan) subtotalSpan.textContent = `\u20a8${subtotal.toLocaleString('en-US')}`;
+        if (subtotalSpan) subtotalSpan.textContent = formatPrice(getPriceInCurrentCurrency(subtotal));
         if (shippingCostSpan) {
             if (shippingCost === 0) {
                 shippingCostSpan.textContent = 'Free';
                 shippingCostSpan.classList.add('text-success');
             } else {
-                shippingCostSpan.textContent = `\u20a8${shippingCost.toLocaleString('en-US')}`;
+                shippingCostSpan.textContent = formatPrice(getPriceInCurrentCurrency(shippingCost));
                 shippingCostSpan.classList.remove('text-success');
             }
             console.log('Updated shipping display:', shippingCostSpan.textContent);
         }
-        if (taxAmountSpan) taxAmountSpan.textContent = `\u20a8${tax.toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
-        if (finalTotalSpan) finalTotalSpan.textContent = `\u20a8${total.toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
+        if (taxAmountSpan) taxAmountSpan.textContent = formatPrice(getPriceInCurrentCurrency(tax));
+        if (finalTotalSpan) finalTotalSpan.textContent = formatPrice(getPriceInCurrentCurrency(total));
 
         // Enable/disable checkout button
         if (checkoutBtn) {
@@ -460,7 +487,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const discountHTML = `
                 <div class="summary-item discount-row d-flex justify-content-between mb-3 text-success">
                     <span>Discount (${appliedCoupon.description}):</span>
-                    <span>-\u20a8${discount.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                    <span>-${formatPrice(getPriceInCurrentCurrency(discount))}</span>
                 </div>
             `;
             
@@ -471,65 +498,79 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function applyCoupon() {
+    function updateCouponDisplay() {
+        const appliedCouponDisplay = document.getElementById('applied-coupon-display');
+        const appliedCouponText = document.getElementById('applied-coupon-text');
+
+        if (!couponInput || !applyCouponBtn || !appliedCouponDisplay || !appliedCouponText) {
+            return;
+        }
+
+        if (appliedCoupon) {
+            couponInput.value = '';
+            couponInput.closest('.input-group').style.display = 'none';
+            applyCouponBtn.style.display = 'none';
+            appliedCouponText.textContent = `Coupon: ${appliedCoupon.code} - ${appliedCoupon.description}`;
+            appliedCouponDisplay.style.display = 'block';
+        } else {
+            couponInput.closest('.input-group').style.display = 'flex';
+            applyCouponBtn.style.display = 'inline-block';
+            appliedCouponDisplay.style.display = 'none';
+        }
+
+        const removeCouponBtn = document.getElementById('remove-coupon-btn');
+        if (removeCouponBtn) {
+            removeCouponBtn.onclick = removeCoupon;
+        }
+    }
+
+    async function applyCoupon() {
         const couponCode = couponInput.value.trim().toUpperCase();
-        
+
         if (!couponCode) {
             showMessage('Please enter a coupon code', 'warning');
             return;
         }
 
-        if (COUPON_CODES[couponCode]) {
-            if (appliedCoupon && appliedCoupon.code === couponCode) {
-                showMessage('This coupon is already applied', 'info');
-                return;
+        if (appliedCoupon && appliedCoupon.code === couponCode) {
+            showMessage('This coupon is already applied', 'info');
+            return;
+        }
+
+        try {
+            const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const response = await fetch('/api/cart/validate-coupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    coupon_code: couponCode,
+                    subtotal: subtotal
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Invalid coupon code');
             }
 
-            appliedCoupon = { ...COUPON_CODES[couponCode], code: couponCode };
+            appliedCoupon = data.coupon;
+            saveCartToStorage();
             updateCartSummary();
+            updateCouponDisplay();
             showMessage(`Coupon applied! ${appliedCoupon.description}`, 'success');
-            
-            // Update coupon display
-            const appliedCouponDisplay = document.getElementById('applied-coupon-display');
-            const appliedCouponText = document.getElementById('applied-coupon-text');
-            
-            // Hide input section
-            couponInput.closest('.input-group').style.display = 'none';
-            applyCouponBtn.style.display = 'none';
-            
-            // Show applied coupon
-            if (appliedCouponDisplay) {
-                appliedCouponText.textContent = `✓ ${couponCode} - ${appliedCoupon.description}`;
-                appliedCouponDisplay.style.display = 'block';
-                
-                // Attach remove event listener
-                const removeCouponBtn = document.getElementById('remove-coupon-btn');
-                if (removeCouponBtn) {
-                    removeCouponBtn.addEventListener('click', removeCoupon);
-                }
-            }
-            
-        } else {
-            showMessage('Invalid coupon code', 'error');
+        } catch (error) {
+            showMessage(error.message || 'Invalid coupon code', 'error');
         }
     }
 
     function removeCoupon() {
         appliedCoupon = null;
+        saveCartToStorage();
         updateCartSummary();
-        
-        // Reset coupon display
         couponInput.value = '';
-        couponInput.closest('.input-group').style.display = 'flex';
-        applyCouponBtn.style.display = 'inline-block';
-        
-        const appliedCouponDisplay = document.getElementById('applied-coupon-display');
-        if (appliedCouponDisplay) {
-            appliedCouponDisplay.style.display = 'none';
-        }
-        
-        showMessage('Coupon removed', 'info');
-        
+        updateCouponDisplay();
         showMessage('Coupon removed', 'info');
     }
 
@@ -547,17 +588,28 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         isLoading = true;
+        const originalButton = checkoutBtn ? checkoutBtn.innerHTML : null;
         
         // Add loading state
         if (checkoutBtn) {
-            const originalContent = checkoutBtn.innerHTML;
             checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Preparing Checkout...';
             checkoutBtn.classList.add('disabled');
         }
 
         console.log('Syncing cart to session:', cartItems);
 
-        // Sync cart to session before checkout, including applied coupon (if any)
+        // Set a timeout to reset loading state if request takes too long (15 seconds)
+        const timeoutId = setTimeout(() => {
+            console.warn('Checkout request timeout - resetting button state');
+            if (checkoutBtn && originalButton) {
+                checkoutBtn.innerHTML = originalButton;
+                checkoutBtn.classList.remove('disabled');
+            }
+            isLoading = false;
+            showMessage('Checkout request took too long. Please try again.', 'error');
+        }, 15000);
+
+        // Sync cart to session before checkout, including applied coupon and selected currency
         fetch('/sync-cart', {
             method: 'POST',
             headers: {
@@ -565,10 +617,12 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             body: JSON.stringify({
                 cart_items: cartItems,
-                coupon_code: appliedCoupon ? appliedCoupon.code : null
+                coupon_code: appliedCoupon ? appliedCoupon.code : null,
+                currency: currentCurrency
             })
         })
         .then(response => {
+            clearTimeout(timeoutId);
             console.log('Sync response status:', response.status);
             return response.json();
         })
@@ -585,10 +639,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         })
         .catch(error => {
+            clearTimeout(timeoutId);
             console.error('Checkout error:', error);
             // Reset button state on error
-            if (checkoutBtn) {
-                checkoutBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Proceed to Checkout';
+            if (checkoutBtn && originalButton) {
+                checkoutBtn.innerHTML = originalButton;
                 checkoutBtn.classList.remove('disabled');
             }
             isLoading = false;
@@ -601,74 +656,85 @@ document.addEventListener("DOMContentLoaded", () => {
         return selectedShipping ? SHIPPING_COSTS[selectedShipping.id] || 0 : 0;
     }
 
-    function loadRecommendedProducts() {
-        // Sample recommended products - using actual available images from your static folder
-        const recommendedProducts = [
-            {
-                id: 'rec-1',
-                name: 'Rubber Plant',
-                price: 28.00,
-                image: '/static/images/indoor/Dracaena_plants.jpg',
-                rating: 4.8
-            },
-            {
-                id: 'rec-2',
-                name: 'Aloe Vera',
-                price: 15.00,
-                image: '/static/images/indoor/golden_potho.jpg',
-                rating: 4.9
-            },
-            {
-                id: 'rec-3',
-                name: 'Boston Fern',
-                price: 22.00,
-                image: '/static/images/indoor/ZZ_plants.jpg',
-                rating: 4.6
-            },
-            {
-                id: 'rec-4',
-                name: 'Spider Plant',
-                price: 18.00,
-                image: '/static/images/indoor/Lucky_Bamboo.jpg',
-                rating: 4.7
-            }
-        ];
+    async function loadRecommendedProducts() {
+        if (!recommendedProductsContainer) {
+            return;
+        }
 
-        if (recommendedProductsContainer) {
-            const productsHTML = recommendedProducts.map(product => `
-                <div class="col-md-3 col-sm-6 mb-4">
-                    <div class="card h-100 border-0 shadow-sm recommended-product">
-                        <img src="${product.image}" class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
-                        <div class="card-body">
-                            <h6 class="card-title">${product.name}</h6>
-                            <div class="rating mb-2">
-                                ${generateStarRating(product.rating)}
-                                <small class="text-muted ms-1">(${product.rating})</small>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="h6 text-success mb-0">\u20a8${(product.price * 4000).toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
-                                <button class="btn btn-outline-success btn-sm add-recommended-btn" data-product-id="${product.id}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
+        let recommendedProducts = [];
+
+        try {
+            const response = await fetch('/api/products/recommended?limit=4');
+            const data = await response.json();
+            if (response.ok && data.success && Array.isArray(data.products) && data.products.length > 0) {
+                recommendedProducts = data.products.map(product => ({
+                    id: Number(product.id),
+                    name: product.name,
+                    price: Number(product.price || 0),
+                    image: product.image,
+                    rating: Number(product.rating || 0),
+                    inStock: true
+                }));
+            }
+        } catch (error) {
+            console.warn('Failed to load recommended products from API, using fallback.');
+        }
+
+        if (recommendedProducts.length === 0) {
+            recommendedProducts = [
+                {
+                    id: 1,
+                    name: 'Featured Plant',
+                    price: 25.00,
+                    image: '/static/main/frontside/images/indoor/Dracaena_plants.jpg',
+                    rating: 4.6,
+                    inStock: true
+                },
+                {
+                    id: 2,
+                    name: 'Indoor Favorite',
+                    price: 18.00,
+                    image: '/static/main/frontside/images/indoor/ZZ_plants.jpg',
+                    rating: 4.5,
+                    inStock: true
+                }
+            ];
+        }
+
+        const productsHTML = recommendedProducts.map(product => `
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm recommended-product">
+                    <img src="${product.image}" class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h6 class="card-title">${product.name}</h6>
+                        <div class="rating mb-2">
+                            ${generateStarRating(product.rating)}
+                            <small class="text-muted ms-1">(${product.rating.toFixed(1)})</small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h6 text-success mb-0">$${product.price.toFixed(2)}</span>
+                            <button class="btn btn-outline-success btn-sm add-recommended-btn" data-product-id="${product.id}">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            </div>
+        `).join('');
 
-            recommendedProductsContainer.innerHTML = productsHTML;
-
-            // Add event listeners for recommended products
-            recommendedProductsContainer.addEventListener('click', (e) => {
-                if (e.target.closest('.add-recommended-btn')) {
-                    const productId = e.target.closest('.add-recommended-btn').dataset.productId;
-                    const product = recommendedProducts.find(p => p.id === productId);
-                    if (product) {
-                        addRecommendedToCart(product);
-                    }
-                }
-            });
-        }
+        recommendedProductsContainer.innerHTML = productsHTML;
+        recommendedProductsContainer.dataset.bound = 'true';
+        recommendedProductsContainer.onclick = (e) => {
+            const button = e.target.closest('.add-recommended-btn');
+            if (!button) {
+                return;
+            }
+            const productId = Number(button.dataset.productId);
+            const product = recommendedProducts.find(p => Number(p.id) === productId);
+            if (product) {
+                addRecommendedToCart(product);
+            }
+        };
     }
 
     function generateStarRating(rating) {
@@ -693,24 +759,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function addRecommendedToCart(product) {
-        const existingItem = cartItems.find(item => item.id === product.id);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cartItems.push({
-                ...product,
-                quantity: 1,
-                category: 'Indoor',
-                inStock: true
-            });
-        }
+        fetch('/add-to-cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: Number(product.id),
+                quantity: 1
+            })
+        })
+        .then(response => response.json().then(data => ({ status: response.status, data })))
+        .then(({ status, data }) => {
+            if (status !== 200 || !data.success) {
+                throw new Error(data.message || 'Unable to add product');
+            }
 
-        saveCartToStorage();
-        displayCartItems();
-        updateCartSummary();
-        updateCartBadge();
-        showMessage(`${product.name} added to cart!`, 'success');
+            const existingItem = cartItems.find(item => normalizeProductId(item.id) === normalizeProductId(product.id));
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cartItems.push({
+                    id: Number(product.id),
+                    name: product.name,
+                    price: Number(product.price || 0),
+                    image: product.image,
+                    quantity: 1,
+                    category: 'Plant',
+                    inStock: true
+                });
+            }
+
+            saveCartToStorage();
+            displayCartItems();
+            updateCartSummary();
+            updateCartBadge();
+            showMessage(`${product.name} added to cart!`, 'success');
+        })
+        .catch(error => {
+            showMessage(error.message || 'Unable to add product', 'error');
+        });
     }
 
     function updateCartBadge() {
@@ -722,6 +810,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function saveCartToStorage() {
         localStorage.setItem('cart', JSON.stringify(cartItems));
+        if (appliedCoupon) {
+            localStorage.setItem('appliedCoupon', appliedCoupon.code);
+            localStorage.setItem('appliedCouponMeta', JSON.stringify(appliedCoupon));
+        } else {
+            localStorage.removeItem('appliedCoupon');
+            localStorage.removeItem('appliedCouponMeta');
+        }
     }
 
     function showMessage(message, type = 'info') {
@@ -785,33 +880,70 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Global function to add items from other pages
     window.addToCart = function(productData) {
-        const existingItem = cartItems.find(item => item.id === productData.id);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cartItems.push({
-                ...productData,
-                quantity: 1,
-                inStock: true
-            });
-        }
+        // Check authentication before allowing add to cart
+        fetch('/add-to-cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: productData.id,
+                name: productData.name,
+                price: productData.price,
+                quantity: 1
+            })
+        })
+        .then(response => {
+            if (response.status === 401) {
+                // User not logged in, redirect to login
+                return response.json().then(data => {
+                    const loginUrl = data.redirect || '/login';
+                    window.location.href = loginUrl;
+                    throw new Error('Redirecting to login');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.success) {
+                // User is authenticated, add to cart
+                const existingItem = cartItems.find(item => item.id === productData.id);
+                
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                    showMessage(`${productData.name} quantity updated!`, 'success');
+                } else {
+                    cartItems.push({
+                        ...productData,
+                        quantity: 1,
+                        inStock: true
+                    });
+                    showMessage(`${productData.name} added to cart!`, 'success');
+                }
 
-        saveCartToStorage();
-        updateCartBadge();
-        
-        // Update cart page if currently viewing it
-        if (window.location.pathname.includes('cart.html')) {
-            displayCartItems();
-            updateCartSummary();
-        }
-        
-        // Dispatch custom event for cross-page synchronization
-        window.dispatchEvent(new CustomEvent('cartUpdated', {
-            detail: { items: cartItems, action: 'add', product: productData }
-        }));
-        
-        return true;
+                saveCartToStorage();
+                updateCartBadge();
+                
+                // Update cart page if currently viewing it
+                if (window.location.pathname.includes('cart.html')) {
+                    displayCartItems();
+                    updateCartSummary();
+                }
+                
+                // Dispatch custom event for cross-page synchronization
+                window.dispatchEvent(new CustomEvent('cartUpdated', {
+                    detail: { items: cartItems, action: 'add', product: productData }
+                }));
+                
+                return true;
+            }
+        })
+        .catch(error => {
+            if (!error.message.includes('Redirecting')) {
+                showMessage('Error adding to cart. Please try again.', 'error');
+            }
+            return false;
+        });
     };
 
     // Global function to get cart items

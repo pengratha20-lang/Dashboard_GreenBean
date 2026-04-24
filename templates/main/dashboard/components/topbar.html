@@ -9,18 +9,39 @@
         </h2>
     </div>
     <div class="top-actions">
-        <div class="notification-bell">
-            <i class="fas fa-bell"></i>
-            <span class="notification-badge">5</span>
+        <div id="notification-app" class="notification-bell dropdown">
+            <div data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; position: relative;">
+                <i class="fas fa-bell"></i>
+                <span v-if="pendingCount > 0" v-cloak class="notification-badge" style="position: absolute; top: -10px !important; right: -13.5px !important; background: #ef4444; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; font-weight: bold; border: 2px solid white;">
+                    [[ pendingCount ]]
+                </span>
+            </div>
+            <ul class="dropdown-menu dropdown-menu-end notification-dropdown shadow border-0 mt-2" style="width: 280px; border-radius: 12px; padding: 0; overflow: hidden;">
+                <li class="px-3 py-2 bg-light border-bottom fw-bold text-muted" style="font-size: 0.85rem; text-transform: uppercase;">Notifications</li>
+                <li v-if="pendingCount > 0" v-cloak>
+                    <a class="dropdown-item d-flex align-items-center gap-3 py-3" href="{{ url_for('order_module.orders_route') }}" style="transition: all 0.2s;">
+                        <div class="bg-warning-subtle text-warning d-flex justify-content-center align-items-center rounded-circle" style="width: 40px; height: 40px; font-size: 1.1rem;">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold" style="color: #1e293b;">New Orders</div>
+                            <div class="small text-muted">[[ pendingCount ]] pending fulfillment</div>
+                        </div>
+                    </a>
+                </li>
+                <li v-else v-cloak>
+                    <div class="dropdown-item py-4 text-muted text-center" style="background: transparent !important; cursor: default;">You're all caught up!</div>
+                </li>
+            </ul>
         </div>
         <div class="admin-profile-container">
-            {% if session.get('username') %}
-                <div class="admin-profile" title="{{ session.get('username') }}">
+            {% if session.get('admin_username') %}
+                <div class="admin-profile" title="{{ session.get('admin_username') }}">
                     <div class="admin-avatar">
-                        {% if session.get('profile_pic') and session.get('profile_pic') != 'default.png' %}
-                            <img src="/static/images/user/thumbnails/thumb_{{ session.get('profile_pic') }}" alt="User Avatar">
+                        {% if session.get('admin_profile_pic') and session.get('admin_profile_pic') != 'default.png' %}
+                            <img src="/static/images/user/thumbnails/{{ session.get('admin_profile_pic') }}" alt="User Avatar">
                         {% else %}
-                            {{ session.get('username')[0:2].upper() }}
+                            {{ session.get('admin_username')[0:2].upper() }}
                         {% endif %}
                     </div>
                 </div>
@@ -33,12 +54,72 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    const { createApp, ref, onMounted, onUnmounted } = Vue;
+
+    createApp({
+        delimiters: ['[[', ']]'],
+        setup() {
+            const pendingCount = ref({{ pending_orders_count if pending_orders_count else 0 }});
+            let intervalId = null;
+
+            const fetchNotifications = async () => {
+                try {
+                    const response = await fetch('/admin/api/notifications');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            pendingCount.value = data.pending_orders_count;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch notifications:', e);
+                }
+            };
+
+            onMounted(() => {
+                intervalId = setInterval(fetchNotifications, 5000);
+            });
+
+            onUnmounted(() => {
+                if (intervalId) clearInterval(intervalId);
+            });
+
+            return {
+                pendingCount: pendingCount
+            }
+        }
+    }).mount('#notification-app');
+</script>
+
 <style>
+    [v-cloak] { display: none; }
     .page-header-topbar {
         display: flex;
         align-items: center;
         gap: 12px;
         flex: 1;
+    }
+
+    .top-bar {
+        position: relative;
+        z-index: 200;
+        overflow: visible;
+    }
+
+    .top-actions,
+    .notification-bell {
+        overflow: visible;
+    }
+
+    .notification-bell {
+        z-index: 210;
+    }
+
+    .notification-dropdown {
+        z-index: 220;
+        margin-top: 14px !important;
     }
 
     .module-title {

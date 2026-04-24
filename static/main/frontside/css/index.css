@@ -111,6 +111,12 @@ body {
     transform: scale(1.1);
 }
 
+/* Ensure cart badge is consistent size */
+#cart-badge {
+    line-height: 1.2;
+    padding: 0.35em 0.65em !important;
+}
+
 /* Mobile navbar improvements */
 @media (max-width: 768px) {
     .navbar-toggler {

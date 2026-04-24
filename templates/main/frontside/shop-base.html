@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="{% block meta_description %}Shop premium plants at Green Bean - Indoor plants, outdoor plants, and accessories{% endblock %}">
+  {% if session.get('customer_id') %}
+  <meta name="user-id" content="{{ session.get('customer_id') }}">
+  {% endif %}
   <title>{% block title %}Green Bean Plant Store{% endblock %}</title>
   
   <!-- Bootstrap CSS -->
@@ -14,16 +17,19 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" 
         integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" 
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/product.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/shop-layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/product.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/shop-layout.css') }}">
   {% block extra_css %}{% endblock %}
 </head>
 
 <body>
   <!-- Shop Navigation -->
-  {% include 'components/shop-navbar.html' %}
+  {% include "frontside/components/shop-navbar.html" %}
 
   <!-- Main Content Area -->
   <main class="main-content pt-5">
@@ -38,15 +44,70 @@
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
   <!-- Footer -->
-  {% include 'components/footer.html' %}
+  {% include "frontside/components/footer.html" %}
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
           integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 
+  <!-- SweetAlert2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    function showSiteAlert(type, message, options = {}) {
+      if (typeof Swal === 'undefined') {
+        alert(message);
+        return Promise.resolve();
+      }
+
+      const isToast = options.toast === true;
+      const config = {
+        icon: type,
+        text: message,
+        confirmButtonColor: type === 'error' ? '#dc2626' : '#22a54a',
+        background: '#ffffff',
+        ...options
+      };
+
+      if (isToast) {
+        config.toast = true;
+        config.position = options.position || 'top-end';
+        config.timer = options.timer || 2200;
+        config.timerProgressBar = true;
+        config.showConfirmButton = false;
+      } else {
+        config.title = options.title || (
+          type === 'success' ? 'Success' :
+          type === 'error' ? 'Error' :
+          type === 'warning' ? 'Please Check' : 'Notice'
+        );
+      }
+
+      return Swal.fire(config);
+    }
+
+    function showSiteConfirm(message, options = {}) {
+      if (typeof Swal === 'undefined') {
+        return Promise.resolve({ isConfirmed: confirm(message) });
+      }
+
+      return Swal.fire({
+        icon: options.icon || 'warning',
+        title: options.title || 'Are you sure?',
+        text: message,
+        showCancelButton: true,
+        confirmButtonColor: options.confirmButtonColor || '#dc2626',
+        cancelButtonColor: options.cancelButtonColor || '#94a3b8',
+        confirmButtonText: options.confirmButtonText || 'Yes',
+        cancelButtonText: options.cancelButtonText || 'Cancel'
+      });
+    }
+  </script>
+
   <!-- Custom JS -->
-  <script src="{{ url_for('static', filename='js/cart-badge-fix.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/shop.js') }}"></script>
+  <script src="{{ url_for('static', filename='main/frontside/js/cart-sync.js') }}"></script>
+  <script src="{{ url_for('static', filename='main/frontside/js/cart-badge-fix.js') }}"></script>
+  <script src="{{ url_for('static', filename='main/frontside/js/shop.js') }}"></script>
   {% block extra_js %}{% endblock %}
 
   <!-- Mobile Sidebar Styles -->
@@ -156,3 +217,4 @@
   </script>
 </body>
 </html>
+

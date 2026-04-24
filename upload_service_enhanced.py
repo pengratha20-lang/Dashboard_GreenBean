@@ -12,7 +12,7 @@ import os
 from werkzeug.utils import secure_filename
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
-from image_helper import ImagePathHelper
+from core.image_helper import ImagePathHelper
 
 
 def allowed_file(filename, allowed_extensions):
@@ -144,7 +144,7 @@ def save_image_organized(
     if not file or file.filename == '':
         return 'no file'
 
-    from config import ALLOWED_EXTENSIONS
+    from config.settings import ALLOWED_EXTENSIONS
     if not allowed_file(file.filename, ALLOWED_EXTENSIONS):
         return 'invalid file'
 

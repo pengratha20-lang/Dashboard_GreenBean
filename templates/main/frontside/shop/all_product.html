@@ -1,9 +1,9 @@
-{% extends "shop-base.html" %}
+{% extends "frontside/shop-base.html" %}
 
 {% block title %}All Products - Green Bean Plant Store{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='main/frontside/css/cart.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -74,7 +74,7 @@
                data-new="{{ 'true' if product.is_new else 'false' }}"
                data-sale="{{ 'true' if product.is_on_sale else 'false' }}"
                data-rating="{{ product.rating or 0 }}">
-            {% include 'components/product-card.html' with context %}
+            {% include 'frontside/components/product-card.html' with context %}
           </div>
         {% endfor %}
       </div>
@@ -98,7 +98,7 @@
 </div>
 
 <!-- Right Sidebar -->
-{% include 'components/shop-sidebar.html' with context %}
+{% include 'frontside/components/shop-sidebar.html' with context %}
 
 <!-- Shopping Cart Modal -->
 <div id="cart-modal" class="cart-modal">
@@ -123,6 +123,25 @@
 </div>
 
 <style>
+/* Keep sort dropdown above sticky sidebar */
+.page-header {
+  position: relative;
+  z-index: 1300;
+}
+
+.page-header .dropdown,
+.page-header .dropdown-menu {
+  z-index: 1400;
+}
+
+/* Sidebar can stay sticky but should not cover the header dropdown */
+@media (min-width: 992px) {
+  .sidebar-area,
+  .sidebar-content {
+    z-index: 1000;
+  }
+}
+
 /* Fix cart item layout */
 .cart-item {
   display: flex !important;
