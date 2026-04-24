@@ -8,6 +8,7 @@ from config.settings import UPLOAD_FOLDER, IMAGES_FOLDER, IMAGE_TYPES, IMAGE_VER
 from core.database import db
 from datetime import timedelta
 from dotenv import load_dotenv
+from sqlalchemy import inspect
 from core.auth_helper import is_admin_logged_in
 from core.exceptions import ApplicationError
 from core.security import app_logger, security_logger, sanitize_error_message
@@ -120,6 +121,42 @@ from routes.main.dashboard.analytics import analytics_bp
 from routes.main.dashboard.setting import settings_bp
 from routes.main.dashboard.user import user_bp
 from routes.main.dashboard.search import search_bp
+
+
+def ensure_database_ready():
+    """Create any missing tables at startup to protect fresh deployments."""
+    auto_create = os.environ.get('AUTO_CREATE_MISSING_TABLES', 'True').lower() == 'true'
+    if not auto_create:
+        return
+
+    required_tables = {
+        User.__tablename__,
+        Customer.__tablename__,
+        Product.__tablename__,
+        Category.__tablename__,
+        Order.__tablename__,
+        OrderItem.__tablename__,
+        Discount.__tablename__,
+        DiscountProduct.__tablename__,
+        Invoice.__tablename__,
+        Setting.__tablename__,
+        CartItem.__tablename__,
+    }
+
+    with app.app_context():
+        inspector = inspect(db.engine)
+        existing_tables = set(inspector.get_table_names())
+        missing_tables = sorted(required_tables - existing_tables)
+
+        if missing_tables:
+            app.logger.warning(
+                'Missing DB tables detected at startup: %s. Running create_all() to recover.',
+                ', '.join(missing_tables)
+            )
+            db.create_all()
+
+
+ensure_database_ready()
 
 # Register backend blueprints with /admin prefix
 app.register_blueprint(admin_auth_bp, url_prefix='/admin', name='admin_auth_page')

@@ -355,7 +355,7 @@
         console.log('Page loaded with error:', '{{ register_error }}');
         Swal.fire({
             title: 'Registration Failed ❌',
-            text: '{{ register_error }}',
+            text: {{ register_error|tojson }},
             icon: 'error',
             confirmButtonText: 'Try Again',
             confirmButtonColor: '#4bbb17',

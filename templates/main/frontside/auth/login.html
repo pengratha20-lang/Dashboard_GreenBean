@@ -309,14 +309,13 @@
         console.log('Page loaded with error:', '{{ login_error }}');
         Swal.fire({
             title: 'Login Failed ❌',
-            text: '{{ login_error }}',
+            text: {{ login_error|tojson }},
             icon: 'error',
             confirmButtonText: 'Try Again',
             confirmButtonColor: '#4bbb17',
             allowOutsideClick: false
         });
     {% endif %}
-</script>
 </script>
 
 {% endblock %}
